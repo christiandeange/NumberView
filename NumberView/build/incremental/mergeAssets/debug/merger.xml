@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merger>
+
+    <dataSet config="ComAndroidSupportAppcompatV71900.aar" >
+        <source path="/Users/christian/Documents/NumberView/NumberView/build/exploded-bundles/ComAndroidSupportAppcompatV71900.aar/assets" />
+    </dataSet>
+    <dataSet config="main" >
+        <source path="/Users/christian/Documents/NumberView/NumberView/src/main/assets" />
+    </dataSet>
+    <dataSet config="debug" >
+        <source path="/Users/christian/Documents/NumberView/NumberView/src/debug/assets" />
+    </dataSet>
+
+</merger>
