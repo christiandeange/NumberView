@@ -6,11 +6,6 @@
 
     <com.deange.numberview.NumberView
         android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:layout_marginRight="-100dp"/>
-
-    <com.deange.numberview.NumberView
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content" />
+        android:layout_width="wrap_content"/>
 
 </LinearLayout>

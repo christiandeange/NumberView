@@ -28,55 +28,58 @@ public class NumberView extends View {
 
     //  NOTE: These fields are not static so that they may be scaled for each instance
 
-    // Approximate width:   points 30 -> 170 == width of 140
-    // Approximate height:  points  0 -> 200 == height of 200
+    // Approximate width:   140
+    // Approximate height:  200
+
+
 
     // The 5 end points. (Note: The last end point is the first end point of the next segment.
     private float[][][] mPoints =
     {
-            {{44.5f, 100}, {100, 18}, {156, 100}, {100, 180}, {44.5f, 100}},                // 0
-            {{77, 20.5f}, {104.5f, 20.5f}, {104.5f, 181}, {104.5f, 181}, {104.5f, 181}},    // 1
-            {{56, 60}, {144.5f, 61}, {108, 122}, {57, 177}, {147, 177}},                    // 2
-            {{63.25f, 54}, {99.5f, 18}, {99.5f, 96}, {100, 180}, {56.5f, 143}},             // 3
-            {{155, 146}, {43, 146}, {129, 25}, {129, 146}, {129, 179}},                     // 4
-            {{146, 20}, {91, 20}, {72, 78}, {145, 129}, {45, 154}},                         // 5
-            {{110, 20}, {110, 20}, {46, 126}, {153, 126}, {53, 100}},                       // 6
-            {{47, 21}, {158, 21}, {120.67f, 73.34f}, {83.34f, 126.67f}, {46, 181}},         // 7
-            {{101, 96}, {101, 19}, {101, 96}, {101, 179}, {101, 96}},                       // 8
-            {{147, 100}, {47, 74}, {154, 74}, {90, 180}, {90, 180}},                        // 9
-            {{101, 96}, {101, 96}, {101, 96}, {101, 96}, {101, 96}}                         // nothing
+        {{14.5f, 100}, {70, 18}, {126, 100}, {70, 180}, {14.5f, 100}},
+        {{47, 20.5f}, {74.5f, 20.5f}, {74.5f, 181}, {74.5f, 181}, {74.5f, 181}},
+        {{26, 60}, {114.5f, 61}, {78, 122}, {27, 177}, {117, 177}},
+        {{33.25f, 54}, {69.5f, 18}, {69.5f, 96}, {70, 180}, {26.5f, 143}},
+        {{125, 146}, {13, 146}, {99, 25}, {99, 146}, {99, 179}},
+        {{116, 20}, {61, 20}, {42, 78}, {115, 129}, {15, 154}},
+        {{80, 20}, {80, 20}, {16, 126}, {123, 126}, {23, 100}},
+        {{17, 21}, {128, 21}, {90.67f, 73.34f}, {53.34f, 126.67f}, {16, 181}},
+        {{71, 96}, {71, 19}, {71, 96}, {71, 179}, {71, 96}},
+        {{117, 100}, {17, 74}, {124, 74}, {60, 180}, {60, 180}},
+        {{71, 96}, {71, 96}, {71, 96}, {71, 96}, {71, 96}},
     };
+
 
     // The set of the "first" control points of each segment.
     private float[][][] mControlPoint1 =
     {
-            {{44.5f, 60}, {133, 18}, {156, 140}, {67, 180}},                // 0
-            {{77, 20.5f}, {104.5f, 20.5f}, {104.5f, 181}, {104.5f, 181}},   // 1
-            {{59, 2}, {144.5f, 78}, {94, 138}, {57, 177}},                  // 2
-            {{63, 27}, {156, 18}, {158, 96}, {54, 180}},                    // 3
-            {{155, 146}, {43, 146}, {129, 25}, {129, 146}},                 // 4
-            {{91, 20}, {72, 78}, {97, 66}, {140, 183}},                     // 5
-            {{110, 20}, {71, 79}, {52, 208}, {146, 66}},                    // 6
-            {{47, 21}, {158, 21}, {120.67f, 73.34f}, {83.34f, 126.67f}},    // 7
-            {{44, 95}, {154, 19}, {44, 96}, {154, 179}},                    // 8
-            {{124, 136}, {42, 8}, {152, 108}, {90, 180}},                   // 9
-            {{101, 96}, {101, 96}, {101, 96}, {101, 96}, {101, 96}}         // nothing
+        {{14.5f, 60}, {103, 18}, {126, 140}, {37, 180}},
+        {{47, 20.5f}, {74.5f, 20.5f}, {74.5f, 181}, {74.5f, 181}},
+        {{29, 2}, {114.5f, 78}, {64, 138}, {27, 177}},
+        {{33, 27}, {126, 18}, {128, 96}, {24, 180}},
+        {{125, 146}, {13, 146}, {99, 25}, {99, 146}},
+        {{61, 20}, {42, 78}, {67, 66}, {110, 183}},
+        {{80, 20}, {41, 79}, {22, 208}, {116, 66}},
+        {{17, 21}, {128, 21}, {90.67f, 73.34f}, {53.34f, 126.67f}},
+        {{14, 95}, {124, 19}, {14, 96}, {124, 179}},
+        {{94, 136}, {12, 8}, {122, 108}, {60, 180}},
+        {{71, 96}, {71, 96}, {71, 96}, {71, 96}, {71, 96}},
     };
 
     // The set of the "second" control points of each segment.
     private float[][][] mControlPoint2 =
     {
-            {{67, 18}, {156, 60}, {133, 180}, {44.5f, 140}},                // 0
-            {{104.5f, 20.5f}, {104.5f, 181}, {104.5f, 181}, {104.5f, 181}}, // 1
-            {{143, 4}, {130, 98}, {74, 155}, {147, 177}},                   // 2
-            {{86, 18}, {146, 96}, {150, 180}, {56, 150}},                   // 3
-            {{43, 146}, {129, 25}, {129, 146}, {129, 179}},                 // 4
-            {{91, 20}, {72, 78}, {145, 85}, {68, 198}},                     // 5
-            {{110, 20}, {48, 92}, {158, 192}, {76, 64}},                    // 6
-            {{158, 21}, {120.67f, 73.34f}, {83.34f, 126.67f}, {46, 181}},   // 7
-            {{44, 19}, {154, 96}, {36, 179}, {154, 96}},                    // 8
-            {{54, 134}, {148, -8}, {129, 121}, {90, 180}},                  // 9
-            {{101, 96}, {101, 96}, {101, 96}, {101, 96}, {101, 96}}         // nothing
+        {{37, 18}, {126, 60}, {103, 180}, {14.5f, 140}},
+        {{74.5f, 20.5f}, {74.5f, 181}, {74.5f, 181}, {74.5f, 181}},
+        {{113, 4}, {100, 98}, {44, 155}, {117, 177}},
+        {{56, 18}, {116, 96}, {120, 180}, {26, 150}},
+        {{13, 146}, {99, 25}, {99, 146}, {99, 179}},
+        {{61, 20}, {42, 78}, {115, 85}, {38, 198}},
+        {{80, 20}, {18, 92}, {128, 192}, {46, 64}},
+        {{128, 21}, {90.67f, 73.34f}, {53.34f, 126.67f}, {16, 181}},
+        {{14, 19}, {124, 96}, {6, 179}, {124, 96}},
+        {{24, 134}, {118, -8}, {99, 121}, {60, 180}},
+        {{71, 96}, {71, 96}, {71, 96}, {71, 96}, {71, 96}},
     };
 
     private static final int FRAME_COUNT_DELAY_PENALTY = 1;
@@ -91,10 +94,8 @@ public class NumberView extends View {
     private int mFrame;
     private int mFrameCount;
 
-    private float mLeft;
-    private float mRight;
-    private float mTop;
-    private float mBottom;
+    private float mWidth;
+    private float mHeight;
 
     private int[] mTempSequence;
     private int[] mSequence;
@@ -144,12 +145,8 @@ public class NumberView extends View {
         mDuration = 1000;
         mScale = 1;
 
-        setScale(2);
-
-        mLeft = 30 * mScale;
-        mRight = 170 * mScale;
-        mTop = 0 * mScale;
-        mBottom = 200 * mScale;
+        mWidth = 140 * mScale;
+        mHeight = 200 * mScale;
 
         mTempSequence = null;
         mSequence = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -203,10 +200,8 @@ public class NumberView extends View {
         
         final float inverseFactor = (scale / mScale);
 
-        mLeft *= inverseFactor;
-        mRight *= inverseFactor;
-        mTop *= inverseFactor;
-        mBottom *= inverseFactor;
+        mWidth *= inverseFactor;
+        mHeight *= inverseFactor;
 
         // We must reset the values back to normal and then multiply them by the new scale
         applyScale(mPoints, inverseFactor);
@@ -235,17 +230,6 @@ public class NumberView extends View {
 
     public int[] getSequence() {
         return mSequence;
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
-        final int width = getMeasuredWidth();
-        final int height = getMeasuredHeight();
-
-
-
     }
 
     @Override
@@ -299,13 +283,7 @@ public class NumberView extends View {
         // Draw the path.
         canvas.drawPath(mPath, mPaint);
 
-        final float minW = mLeft;
-        final float maxW = mRight;
-        final float minH = mTop;
-        final float maxH = mBottom;
-
         debugLayout(canvas, 0, getWidth(), 0, getHeight());
-        debugLayout(canvas, minW, maxW, minH, maxH);
 
         canvas.restoreToCount(count);
 
