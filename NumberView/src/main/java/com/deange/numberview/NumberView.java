@@ -8,6 +8,7 @@ import android.graphics.Path;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.AnticipateInterpolator;
@@ -88,6 +89,7 @@ public class NumberView extends View {
     private final Path mPath = new Path();
 
     private long mLastChange = System.currentTimeMillis();
+    private long mWaitUntil;
 
     private int mIndex;
     private int mCurrent;
@@ -149,12 +151,12 @@ public class NumberView extends View {
         mHeight = 200 * mScale;
 
         mTempSequence = null;
-        mSequence = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        mSequence = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
         setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                setScale((float) (Math.random() * 5));
+                setScale((float) ((Math.random() + 1) * 2));
             }
         });
 
@@ -209,6 +211,8 @@ public class NumberView extends View {
         applyScale(mControlPoint2, inverseFactor);
 
         mScale = scale;
+
+        postInvalidateDelayed(1);
     }
 
     private strictfp void applyScale(final float[][][] array, final float scale) {
@@ -242,6 +246,24 @@ public class NumberView extends View {
                 Canvas.CLIP_TO_LAYER_SAVE_FLAG);
 
         super.onDraw(canvas);
+
+        final ViewGroup.LayoutParams params = getLayoutParams();
+        if (params != null) {
+            boolean changeParams = false;
+            if (params.width != (int) mWidth) {
+                params.width = (int) mWidth;
+                changeParams = true;
+            }
+
+            if (params.height != (int) mHeight) {
+                params.height = (int) mHeight;
+                changeParams = true;
+            }
+
+            if (changeParams) {
+                setLayoutParams(params);
+            }
+        }
 
         if (mFrame == 0) {
             mLastChange = System.currentTimeMillis();
@@ -287,6 +309,13 @@ public class NumberView extends View {
 
         canvas.restoreToCount(count);
 
+        if (mWaitUntil != 0 && (System.currentTimeMillis() + 10 < mWaitUntil)) {
+            postInvalidateDelayed(mWaitUntil - System.currentTimeMillis());
+            return;
+        }
+
+        mWaitUntil = 0;
+
         // Next frame.
         mFrame++;
 
@@ -307,14 +336,7 @@ public class NumberView extends View {
             final long now = System.currentTimeMillis();
             frameDelay = mDuration - (int) (now - mLastChange);
 
-            if (frameDelay < 0) {
-                int newFrameCount = Math.max(0, mFrameCount - FRAME_COUNT_DELAY_PENALTY);
-
-                Log.w(TAG, "Animation took too long! Reducing frame count from " +
-                        mFrameCount + " to " + newFrameCount);
-
-                mFrameCount = newFrameCount;
-            }
+            mWaitUntil = now + frameDelay;
 
             // Update the sequence when this current number tween animation ends
             if (mTempSequence != null) {
