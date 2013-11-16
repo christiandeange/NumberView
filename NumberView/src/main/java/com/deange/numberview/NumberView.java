@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -27,13 +28,11 @@ public class NumberView extends View {
 
     private static final String TAG = NumberView.class.getSimpleName();
 
-    //  NOTE: These fields are not static so that they may be scaled for each instance
+    private static final boolean DEBUG = true;
 
-    // Approximate width:   140
-    // Approximate height:  200
+    // Approximate default dimensions: 140x200
 
-
-
+    // NOTE: These fields are not static so that they may be scaled for each instance
     // The 5 end points. (Note: The last end point is the first end point of the next segment.
     private float[][][] mPoints =
     {
@@ -49,7 +48,6 @@ public class NumberView extends View {
         {{117, 100}, {17, 74}, {124, 74}, {60, 180}, {60, 180}},
         {{71, 96}, {71, 96}, {71, 96}, {71, 96}, {71, 96}},
     };
-
 
     // The set of the "first" control points of each segment.
     private float[][][] mControlPoint1 =
@@ -83,9 +81,11 @@ public class NumberView extends View {
         {{71, 96}, {71, 96}, {71, 96}, {71, 96}, {71, 96}},
     };
 
-    private static final int FRAME_COUNT_DELAY_PENALTY = 1;
+    private static final float DEFAULT_WIDTH = 140;
+    private static final float DEFAULT_HEIGHT = 200;
+    private static final float ASPECT_RATIO = DEFAULT_WIDTH / DEFAULT_HEIGHT;
 
-    private final Paint mPaint = new Paint();
+    private Paint mPaint = new Paint();
     private final Path mPath = new Path();
 
     private long mLastChange = System.currentTimeMillis();
@@ -96,12 +96,13 @@ public class NumberView extends View {
     private int mFrame;
     private int mFrameCount;
 
-    private float mWidth;
-    private float mHeight;
+    private int mWidth;
+    private int mHeight;
 
     private int[] mTempSequence;
     private int[] mSequence;
 
+    private boolean mAutoAdvance;
     private float mScale;
     private int mDuration;
     private Interpolator mInterpolator;
@@ -131,7 +132,7 @@ public class NumberView extends View {
         mInterpolators.put(TweenStyle.NONE, new LinearInterpolator());
     }
 
-    public NumberView(Context context, AttributeSet attrs) {
+    public NumberView(final Context context, final AttributeSet attrs) {
         super(context, attrs);
 
         setWillNotDraw(false);
@@ -143,37 +144,45 @@ public class NumberView extends View {
         mPaint.setStrokeWidth(5.0f);
         mPaint.setStyle(Paint.Style.STROKE);
 
+        mAutoAdvance = true;
         mFrameCount = 24;
         mDuration = 1000;
         mScale = 1;
 
-        mWidth = 140 * mScale;
-        mHeight = 200 * mScale;
+        mWidth = (int) (DEFAULT_WIDTH * mScale);
+        mHeight = (int) (DEFAULT_HEIGHT * mScale);
 
         mTempSequence = null;
         mSequence = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-
-        setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setScale((float) ((Math.random() + 1) * 2));
-            }
-        });
-
     }
 
-    public void setTweenStyle(TweenStyle style) {
+    public void setTweenStyle(final TweenStyle style) {
+        setTweenStyle(mInterpolators.get(style));
+    }
 
-        if (style == null) {
-            Log.w(TAG, "TweenStyle is null, setting to TweenStyle.NONE");
-            style = TweenStyle.NONE;
+    public void setTweenStyle(final Interpolator interpolator) {
+
+        if (interpolator == null) {
+            throw new IllegalArgumentException("Interpolator cannot be null");
         }
 
-        mInterpolator = mInterpolators.get(style);
+        mInterpolator = interpolator;
     }
 
     public void setDuration(final int duration) {
         mDuration = duration;
+    }
+
+    public int getDuration() {
+        return mDuration;
+    }
+
+    public void setPaint(final Paint paint) {
+        mPaint = new Paint(paint);
+    }
+
+    public Paint getPaint() {
+        return mPaint;
     }
 
     public void setSequence(final int[] sequence) {
@@ -185,18 +194,36 @@ public class NumberView extends View {
         if (mFrame != mFrameCount) {
             mTempSequence = new int[sequence.length];
             System.arraycopy(sequence, 0, mTempSequence, 0, sequence.length);
-            return;
-        }
 
-        mSequence = new int[sequence.length];
-        System.arraycopy(sequence, 0, mSequence, 0, sequence.length);
+        } else {
+            mSequence = new int[sequence.length];
+            System.arraycopy(sequence, 0, mSequence, 0, sequence.length);
+        }
     }
 
-    public strictfp void setScale(final float scale) {
+    public int[] getSequence() {
+        return mSequence;
+    }
+
+    public void setAutoAdvance(final boolean autoAdvance) {
+        mAutoAdvance = autoAdvance;
+    }
+
+    public boolean isAutoAdvance() {
+        return mAutoAdvance;
+    }
+
+    public int getCurrentNumber() {
+        return mCurrent;
+    }
+
+    private strictfp void setScale(float scale) {
 
         if (scale == 0) {
             throw new IllegalArgumentException("Scale cannot be 0");
         }
+
+        scale = Math.abs(scale);
 
         if (mScale == scale) return;
         
@@ -224,16 +251,49 @@ public class NumberView extends View {
         }
     }
 
-    public int getDuration() {
-        return mDuration;
+    public void advance() {
+        mFrame = 0;
+        postInvalidateDelayed(1);
     }
 
-    public int getCurrentNumber() {
-        return mCurrent;
-    }
+    private void resolveLayoutParams() {
 
-    public int[] getSequence() {
-        return mSequence;
+        final ViewGroup.LayoutParams params = getLayoutParams();
+        if (params != null) {
+            boolean changeParams = false;
+
+            final float aspectRatio = (getHeight() == 0)
+                    ? 0 : Math.abs((float)getWidth() / (float)getHeight());
+
+            if (params.height == ViewGroup.LayoutParams.WRAP_CONTENT) {
+                params.height = mHeight;
+                changeParams = true;
+            }
+
+            if (params.width == ViewGroup.LayoutParams.WRAP_CONTENT) {
+                params.width = mWidth;
+                changeParams = true;
+            }
+
+            if (changeParams) {
+                setLayoutParams(params);
+                return;
+            }
+
+            if ((aspectRatio > ASPECT_RATIO) && (getHeight() != mHeight)) {
+                // Height is limiting factor
+                final float newFactor = getHeight() / (float) mHeight;
+                setScale(newFactor);
+            }
+
+            if ((aspectRatio < ASPECT_RATIO) && (getWidth() != mWidth)) {
+                // Width is limiting factor
+                final float newFactor = getWidth() / (float) mWidth;
+                setScale(newFactor);
+            }
+
+        }
+
     }
 
     @Override
@@ -247,23 +307,7 @@ public class NumberView extends View {
 
         super.onDraw(canvas);
 
-        final ViewGroup.LayoutParams params = getLayoutParams();
-        if (params != null) {
-            boolean changeParams = false;
-            if (params.width != (int) mWidth) {
-                params.width = (int) mWidth;
-                changeParams = true;
-            }
-
-            if (params.height != (int) mHeight) {
-                params.height = (int) mHeight;
-                changeParams = true;
-            }
-
-            if (changeParams) {
-                setLayoutParams(params);
-            }
-        }
+        resolveLayoutParams();
 
         if (mFrame == 0) {
             mLastChange = System.currentTimeMillis();
@@ -286,6 +330,9 @@ public class NumberView extends View {
         final float[][] curr2 = mControlPoint2[mCurrent];
         final float[][] next2 = mControlPoint2[nextValue];
 
+        final float translateX = 0;
+        final float translateY = 0;
+
         // First point.
         mPath.moveTo(
                 current[0][0] + ((next[0][0] - current[0][0]) * factor),
@@ -305,10 +352,11 @@ public class NumberView extends View {
         // Draw the path.
         canvas.drawPath(mPath, mPaint);
 
-        debugLayout(canvas, 0, getWidth(), 0, getHeight());
+        if (DEBUG) debugLayout(canvas, 0, getWidth(), 0, getHeight());
 
         canvas.restoreToCount(count);
 
+        // Weird bug with the postDelayed time not being respected...
         if (mWaitUntil != 0 && (System.currentTimeMillis() + 10 < mWaitUntil)) {
             postInvalidateDelayed(mWaitUntil - System.currentTimeMillis());
             return;
@@ -345,34 +393,16 @@ public class NumberView extends View {
             }
         }
 
+        if ((!mAutoAdvance) && (mFrame == 0)) {
+            mWaitUntil = 0;
+            return;
+        }
+
         // Callback for the next frame.
         postInvalidateDelayed(frameDelay);
     }
 
     private void debugLayout(final Canvas canvas, final float minW, final float maxW, final float minH, final float maxH) {
-
-        final float[] array = new float[16];
-        int ptr = 0;
-        array[ptr++] = minW;
-        array[ptr++] = minH;
-        array[ptr++] = maxW;
-        array[ptr++] = minH;
-
-        array[ptr++] = maxW;
-        array[ptr++] = minH;
-        array[ptr++] = maxW;
-        array[ptr++] = maxH;
-
-        array[ptr++] = maxW;
-        array[ptr++] = maxH;
-        array[ptr++] = minW;
-        array[ptr++] = maxH;
-
-        array[ptr++] = minW;
-        array[ptr++] = maxH;
-        array[ptr++] = minW;
-        array[ptr++] = minH;
-
-        canvas.drawLines(array, mPaint);
+        canvas.drawRect(minW, minH, maxW, maxH, mPaint);
     }
 }
