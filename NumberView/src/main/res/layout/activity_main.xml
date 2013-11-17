@@ -1,11 +1,21 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/container"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="horizontal">
+    android:layout_height="match_parent">
 
     <com.deange.numberview.NumberView
+        android:id="@+id/nv"
         android:layout_height="wrap_content"
-        android:layout_width="wrap_content"/>
+        android:layout_width="wrap_content"
+        android:layout_alignBottom="@+id/tv"
+        android:layout_alignTop="@+id/tv"/>
 
-</LinearLayout>
+    <TextView
+            android:id="@+id/tv"
+            android:layout_toRightOf="@id/nv"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="3"
+            android:textSize="116sp" />
+
+</RelativeLayout>
