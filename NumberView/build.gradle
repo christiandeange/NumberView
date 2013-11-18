@@ -17,11 +17,11 @@ android {
     buildToolsVersion "19.0.0"
 
     defaultConfig {
-        minSdkVersion 9
+        minSdkVersion 1
         targetSdkVersion 19
     }
 }
 
 dependencies {
-	compile 'com.android.support:appcompat-v7:+'
+
 }
