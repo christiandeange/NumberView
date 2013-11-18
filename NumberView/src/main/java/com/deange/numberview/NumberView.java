@@ -26,7 +26,7 @@ public class NumberView extends View {
 
     private static final String TAG = NumberView.class.getSimpleName();
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     // "8" is used since it constitutes the widest number drawn
     private static final String MEASURING_TEXT = "8";
