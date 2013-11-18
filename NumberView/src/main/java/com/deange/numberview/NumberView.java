@@ -104,6 +104,7 @@ public class NumberView extends View {
     private int mWidth;
     private int mHeight;
 
+    private int mTempIndex;
     private int[] mTempSequence;
     private int[] mSequence;
 
@@ -141,7 +142,7 @@ public class NumberView extends View {
         super(context, attrs);
 
         setWillNotDraw(false);
-        setTweenStyle(TweenStyle.ACCEL_DECEL);
+        setInterpolator(TweenStyle.ACCEL_DECEL);
 
         // A new paint with the style as stroke.
         mPaint.setAntiAlias(true);
@@ -158,8 +159,9 @@ public class NumberView extends View {
         mWidth = (int) (DEFAULT_WIDTH * mScale);
         mHeight = (int) (DEFAULT_HEIGHT * mScale);
 
+        mTempIndex = -1;
         mTempSequence = null;
-        mSequence = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        mSequence = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
         setAlignX(ALIGN_CENTER);
         setAlignY(ALIGN_END);
@@ -177,7 +179,7 @@ public class NumberView extends View {
     public void setSequence(final int[] sequence) {
 
         if (sequence == null) {
-            throw new NullPointerException("Sequence cannot be null");
+            throw new IllegalArgumentException("Sequence cannot be null");
         }
 
         if (mFrame != mFrameCount) {
@@ -194,11 +196,11 @@ public class NumberView extends View {
         return mSequence;
     }
 
-    public void setTweenStyle(final TweenStyle style) {
-        setTweenStyle(mInterpolators.get(style));
+    public void setInterpolator(final TweenStyle style) {
+        setInterpolator(mInterpolators.get(style));
     }
 
-    public void setTweenStyle(final Interpolator interpolator) {
+    public void setInterpolator(final Interpolator interpolator) {
 
         if (interpolator == null) {
             throw new IllegalArgumentException("Interpolator cannot be null");
@@ -251,6 +253,11 @@ public class NumberView extends View {
 
     public void setAutoAdvance(final boolean autoAdvance) {
         mAutoAdvance = autoAdvance;
+
+        if (!mAutoAdvance) {
+            // Reset frame
+            mFrame = 0;
+        }
     }
 
     public boolean isAutoAdvance() {
@@ -259,6 +266,10 @@ public class NumberView extends View {
 
     public int getCurrentNumber() {
         return mCurrent;
+    }
+
+    public void setCurrentNumberIndex(final int index) {
+        mTempIndex = mIndex;
     }
 
     private strictfp void setScale(float scale) {
@@ -270,7 +281,7 @@ public class NumberView extends View {
         scale = Math.abs(scale);
 
         if (mScale == scale) return;
-        
+
         final float inverseFactor = (scale / mScale);
 
         mWidth *= inverseFactor;
@@ -380,24 +391,24 @@ public class NumberView extends View {
         // Reset the path.
         mPath.reset();
 
-        final int nextValue = mSequence[mIndex];
+        final int nextNumberShown = mSequence[mIndex];
 
         final float[][] current = mPoints[mCurrent];
-        final float[][] next = mPoints[nextValue];
+        final float[][] next = mPoints[nextNumberShown];
         final float[][] curr1 = mControlPoint1[mCurrent];
-        final float[][] next1 = mControlPoint1[nextValue];
+        final float[][] next1 = mControlPoint1[nextNumberShown];
         final float[][] curr2 = mControlPoint2[mCurrent];
-        final float[][] next2 = mControlPoint2[nextValue];
+        final float[][] next2 = mControlPoint2[nextNumberShown];
 
         final float translateX = resolveTranslatedValue(mAlignX, getWidth(), mWidth);
         final float translateY = resolveTranslatedValue(mAlignY, getHeight(), mHeight);
 
-        // First point.
+        // Draw the first point
         mPath.moveTo(
                 current[0][0] + ((next[0][0] - current[0][0]) * factor + translateX),
                 current[0][1] + ((next[0][1] - current[0][1]) * factor + translateY));
 
-        // Rest of the points connected as bezier curve.
+        // Connect the rest of the points as a bezier curve.
         for (int i = 0; i < 4; i++) {
             mPath.cubicTo(
                     curr1[i][0] + ((next1[i][0] - curr1[i][0]) * factor + translateX),         // Control point 1
@@ -435,8 +446,14 @@ public class NumberView extends View {
         if (mFrame > mFrameCount) {
 
             mFrame = 0;
-            mCurrent = nextValue;
+            mCurrent = nextNumberShown;
             mIndex++;
+
+            // Pluck the value set by the user mid-transition
+            if (mTempIndex != -1) {
+                mIndex = mTempIndex;
+                mTempIndex = -1;
+            }
 
             // Wrap around to the start of the sequence
             if (mIndex >= mSequence.length) {
