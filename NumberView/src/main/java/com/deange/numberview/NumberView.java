@@ -5,9 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -29,6 +27,11 @@ public class NumberView extends View {
     private static final String TAG = NumberView.class.getSimpleName();
 
     private static final boolean DEBUG = true;
+    private static final String MEASURING_TEXT = "8";
+
+    public static final int ALIGN_START = 0;
+    public static final int ALIGN_CENTER = 1;
+    public static final int ALIGN_END = 2;
 
     // Approximate default dimensions: 140x200
 
@@ -96,6 +99,8 @@ public class NumberView extends View {
     private int mFrame;
     private int mFrameCount;
 
+    private int mAlignX;
+    private int mAlignY;
     private int mWidth;
     private int mHeight;
 
@@ -154,6 +159,35 @@ public class NumberView extends View {
 
         mTempSequence = null;
         mSequence = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+        setAlignX(ALIGN_CENTER);
+        setAlignY(ALIGN_END);
+
+        float size = 0;
+        do {
+            size++;
+            mPaint.setTextSize(size);
+        } while (mPaint.measureText(MEASURING_TEXT) >= mWidth);
+    }
+
+    public void setSequence(final int[] sequence) {
+
+        if (sequence == null) {
+            throw new NullPointerException("Sequence cannot be null");
+        }
+
+        if (mFrame != mFrameCount) {
+            mTempSequence = new int[sequence.length];
+            System.arraycopy(sequence, 0, mTempSequence, 0, sequence.length);
+
+        } else {
+            mSequence = new int[sequence.length];
+            System.arraycopy(sequence, 0, mSequence, 0, sequence.length);
+        }
+    }
+
+    public int[] getSequence() {
+        return mSequence;
     }
 
     public void setTweenStyle(final TweenStyle style) {
@@ -179,30 +213,36 @@ public class NumberView extends View {
 
     public void setPaint(final Paint paint) {
         mPaint = new Paint(paint);
+        setScale(mPaint.measureText(MEASURING_TEXT) / mWidth);
     }
 
     public Paint getPaint() {
         return mPaint;
     }
 
-    public void setSequence(final int[] sequence) {
-
-        if (sequence == null) {
-            throw new NullPointerException("Sequence cannot be null");
-        }
-
-        if (mFrame != mFrameCount) {
-            mTempSequence = new int[sequence.length];
-            System.arraycopy(sequence, 0, mTempSequence, 0, sequence.length);
-
-        } else {
-            mSequence = new int[sequence.length];
-            System.arraycopy(sequence, 0, mSequence, 0, sequence.length);
-        }
+    public void setTextSize(final float textSize) {
+        mPaint.setTextSize(textSize);
+        setScale(mPaint.measureText(MEASURING_TEXT) / mWidth);
     }
 
-    public int[] getSequence() {
-        return mSequence;
+    public float getTextSize() {
+        return mPaint.getTextSize();
+    }
+
+    public void setAlignX(final int alignX) {
+        mAlignX = alignX;
+    }
+
+    public int getAlignX() {
+        return mAlignX;
+    }
+
+    public void setAlignY(final int alignY) {
+        mAlignY = alignY;
+    }
+
+    public int getAlignY() {
+        return mAlignY;
     }
 
     public void setAutoAdvance(final boolean autoAdvance) {
@@ -276,24 +316,48 @@ public class NumberView extends View {
             }
 
             if (changeParams) {
+                // We need to explicitly set the values for WRAP_CONTENT,
+                // since this view defaults to MATCH_PARENT.
                 setLayoutParams(params);
-                return;
-            }
 
-            if ((aspectRatio > ASPECT_RATIO) && (getHeight() != mHeight)) {
-                // Height is limiting factor
-                final float newFactor = getHeight() / (float) mHeight;
-                setScale(newFactor);
-            }
+            } else {
+                if ((aspectRatio > ASPECT_RATIO) && (getHeight() != mHeight)
+                        && (params.height != ViewGroup.LayoutParams.MATCH_PARENT)) {
+                    // Absolute value, height is limiting factor
+                    final float newFactor = getHeight() / (float) mHeight;
+                    setScale(newFactor);
+                }
 
-            if ((aspectRatio < ASPECT_RATIO) && (getWidth() != mWidth)) {
-                // Width is limiting factor
-                final float newFactor = getWidth() / (float) mWidth;
-                setScale(newFactor);
+                if ((aspectRatio < ASPECT_RATIO) && (getWidth() != mWidth)
+                        && (params.width != ViewGroup.LayoutParams.MATCH_PARENT)) {
+                    // Absolute value, width is limiting factor
+                    final float newFactor = getWidth() / (float) mWidth;
+                    setScale(newFactor);
+                }
             }
 
         }
 
+    }
+
+    private float resolveTranslatedValue(final int alignStyle, final int parentDimen, final int drawDimen) {
+        float resolvedValue;
+
+        switch (alignStyle) {
+            case ALIGN_CENTER:
+                resolvedValue = (parentDimen - drawDimen) / 2;
+                break;
+
+            case ALIGN_END:
+                resolvedValue = parentDimen - drawDimen;
+                break;
+
+            case ALIGN_START:
+            default:
+                resolvedValue  = 0;
+        }
+
+        return resolvedValue;
     }
 
     @Override
@@ -323,36 +387,36 @@ public class NumberView extends View {
 
         final float[][] current = mPoints[mCurrent];
         final float[][] next = mPoints[nextValue];
-
         final float[][] curr1 = mControlPoint1[mCurrent];
         final float[][] next1 = mControlPoint1[nextValue];
-
         final float[][] curr2 = mControlPoint2[mCurrent];
         final float[][] next2 = mControlPoint2[nextValue];
 
-        final float translateX = 0;
-        final float translateY = 0;
+        final float translateX = resolveTranslatedValue(mAlignX, getWidth(), mWidth);
+        final float translateY = resolveTranslatedValue(mAlignY, getHeight(), mHeight);
 
         // First point.
         mPath.moveTo(
-                current[0][0] + ((next[0][0] - current[0][0]) * factor),
-                current[0][1] + ((next[0][1] - current[0][1]) * factor));
+                current[0][0] + ((next[0][0] - current[0][0]) * factor + translateX),
+                current[0][1] + ((next[0][1] - current[0][1]) * factor + translateY));
 
         // Rest of the points connected as bezier curve.
         for (int i = 0; i < 4; i++) {
             mPath.cubicTo(
-                    curr1[i][0] + ((next1[i][0] - curr1[i][0]) * factor),         // Control point 1
-                    curr1[i][1] + ((next1[i][1] - curr1[i][1]) * factor),
-                    curr2[i][0] + ((next2[i][0] - curr2[i][0]) * factor),         // Control point 2
-                    curr2[i][1] + ((next2[i][1] - curr2[i][1]) * factor),
-                    current[i + 1][0] + ((next[i + 1][0] - current[i + 1][0]) * factor),    // Point
-                    current[i + 1][1] + ((next[i + 1][1] - current[i + 1][1]) * factor));
+                    curr1[i][0] + ((next1[i][0] - curr1[i][0]) * factor + translateX),         // Control point 1
+                    curr1[i][1] + ((next1[i][1] - curr1[i][1]) * factor + translateY),
+                    curr2[i][0] + ((next2[i][0] - curr2[i][0]) * factor + translateX),         // Control point 2
+                    curr2[i][1] + ((next2[i][1] - curr2[i][1]) * factor + translateY),
+                    current[i + 1][0] + ((next[i + 1][0] - current[i + 1][0]) * factor + translateX),    // Point
+                    current[i + 1][1] + ((next[i + 1][1] - current[i + 1][1]) * factor + translateY));
         }
 
         // Draw the path.
         canvas.drawPath(mPath, mPaint);
 
-        if (DEBUG) debugLayout(canvas, 0, getWidth(), 0, getHeight());
+        if (DEBUG) {
+            canvas.drawRect(0, 0, getWidth(), getHeight(), mPaint);
+        }
 
         canvas.restoreToCount(count);
 
@@ -377,10 +441,12 @@ public class NumberView extends View {
             mCurrent = nextValue;
             mIndex++;
 
+            // Wrap around to the start of the sequence
             if (mIndex >= mSequence.length) {
                 mIndex = 0;
             }
 
+            // Calculate wait time for the next second
             final long now = System.currentTimeMillis();
             frameDelay = mDuration - (int) (now - mLastChange);
 
@@ -393,6 +459,7 @@ public class NumberView extends View {
             }
         }
 
+        // If we are not doing an auto advance, then
         if ((!mAutoAdvance) && (mFrame == 0)) {
             mWaitUntil = 0;
             return;
@@ -402,7 +469,4 @@ public class NumberView extends View {
         postInvalidateDelayed(frameDelay);
     }
 
-    private void debugLayout(final Canvas canvas, final float minW, final float maxW, final float minH, final float maxH) {
-        canvas.drawRect(minW, minH, maxW, maxH, mPaint);
-    }
 }
