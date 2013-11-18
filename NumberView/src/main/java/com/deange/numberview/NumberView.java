@@ -27,6 +27,8 @@ public class NumberView extends View {
     private static final String TAG = NumberView.class.getSimpleName();
 
     private static final boolean DEBUG = true;
+
+    // "8" is used since it constitutes the widest number drawn
     private static final String MEASURING_TEXT = "8";
 
     public static final int ALIGN_START = 0;
@@ -36,7 +38,6 @@ public class NumberView extends View {
     // Approximate default dimensions: 140x200
 
     // NOTE: These fields are not static so that they may be scaled for each instance
-    // The 5 end points. (Note: The last end point is the first end point of the next segment.
     private float[][][] mPoints =
     {
         {{14.5f, 100}, {70, 18}, {126, 100}, {70, 180}, {14.5f, 100}},
@@ -49,7 +50,7 @@ public class NumberView extends View {
         {{17, 21}, {128, 21}, {90.67f, 73.34f}, {53.34f, 126.67f}, {16, 181}},
         {{71, 96}, {71, 19}, {71, 96}, {71, 179}, {71, 96}},
         {{117, 100}, {17, 74}, {124, 74}, {60, 180}, {60, 180}},
-        {{71, 96}, {71, 96}, {71, 96}, {71, 96}, {71, 96}},
+        {empty(), empty(), empty(), empty(), empty()},
     };
 
     // The set of the "first" control points of each segment.
@@ -65,7 +66,7 @@ public class NumberView extends View {
         {{17, 21}, {128, 21}, {90.67f, 73.34f}, {53.34f, 126.67f}},
         {{14, 95}, {124, 19}, {14, 96}, {124, 179}},
         {{94, 136}, {12, 8}, {122, 108}, {60, 180}},
-        {{71, 96}, {71, 96}, {71, 96}, {71, 96}, {71, 96}},
+        {empty(), empty(), empty(), empty(), empty()},
     };
 
     // The set of the "second" control points of each segment.
@@ -81,12 +82,11 @@ public class NumberView extends View {
         {{128, 21}, {90.67f, 73.34f}, {53.34f, 126.67f}, {16, 181}},
         {{14, 19}, {124, 96}, {6, 179}, {124, 96}},
         {{24, 134}, {118, -8}, {99, 121}, {60, 180}},
-        {{71, 96}, {71, 96}, {71, 96}, {71, 96}, {71, 96}},
+        {empty(), empty(), empty(), empty(), empty()},
     };
 
     private static final float DEFAULT_WIDTH = 140;
     private static final float DEFAULT_HEIGHT = 200;
-    private static final float ASPECT_RATIO = DEFAULT_WIDTH / DEFAULT_HEIGHT;
 
     private Paint mPaint = new Paint();
     private final Path mPath = new Path();
@@ -146,9 +146,10 @@ public class NumberView extends View {
         // A new paint with the style as stroke.
         mPaint.setAntiAlias(true);
         mPaint.setColor(Color.BLACK);
-        mPaint.setStrokeWidth(5.0f);
+        mPaint.setStrokeWidth(2f);
         mPaint.setStyle(Paint.Style.STROKE);
 
+        // Set up timing values
         mAutoAdvance = true;
         mFrameCount = 24;
         mDuration = 1000;
@@ -158,16 +159,19 @@ public class NumberView extends View {
         mHeight = (int) (DEFAULT_HEIGHT * mScale);
 
         mTempSequence = null;
-        mSequence = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        mSequence = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
         setAlignX(ALIGN_CENTER);
         setAlignY(ALIGN_END);
 
+        // Calculate the right value for the default text size
         float size = 0;
         do {
             size++;
             mPaint.setTextSize(size);
-        } while (mPaint.measureText(MEASURING_TEXT) >= mWidth);
+        } while (mPaint.measureText(MEASURING_TEXT) < mWidth);
+
+        setTextSize(mPaint.getTextSize());
     }
 
     public void setSequence(final int[] sequence) {
@@ -273,6 +277,19 @@ public class NumberView extends View {
         mHeight *= inverseFactor;
 
         // We must reset the values back to normal and then multiply them by the new scale
+        // We can do this all at once by using the inverseFactor!
+        //
+        // inverseFactor = new / old;
+        // mScale = old (originally)
+        // mScale * inverseFactor
+        //      = mScale * new / old
+        //      = old * (new / old)
+        //      = new * (old / old)
+        //      = new
+        //
+        // This changes the scale to the new value
+        // </math>
+
         applyScale(mPoints, inverseFactor);
         applyScale(mControlPoint1, inverseFactor);
         applyScale(mControlPoint2, inverseFactor);
@@ -291,6 +308,11 @@ public class NumberView extends View {
         }
     }
 
+    private float[] empty() {
+        // Used to indicate an empty number field
+        return new float[] {70, 100};
+    }
+
     public void advance() {
         mFrame = 0;
         postInvalidateDelayed(1);
@@ -300,40 +322,15 @@ public class NumberView extends View {
 
         final ViewGroup.LayoutParams params = getLayoutParams();
         if (params != null) {
-            boolean changeParams = false;
-
-            final float aspectRatio = (getHeight() == 0)
-                    ? 0 : Math.abs((float)getWidth() / (float)getHeight());
 
             if (params.height == ViewGroup.LayoutParams.WRAP_CONTENT) {
                 params.height = mHeight;
-                changeParams = true;
+                setLayoutParams(params);
             }
 
             if (params.width == ViewGroup.LayoutParams.WRAP_CONTENT) {
                 params.width = mWidth;
-                changeParams = true;
-            }
-
-            if (changeParams) {
-                // We need to explicitly set the values for WRAP_CONTENT,
-                // since this view defaults to MATCH_PARENT.
                 setLayoutParams(params);
-
-            } else {
-                if ((aspectRatio > ASPECT_RATIO) && (getHeight() != mHeight)
-                        && (params.height != ViewGroup.LayoutParams.MATCH_PARENT)) {
-                    // Absolute value, height is limiting factor
-                    final float newFactor = getHeight() / (float) mHeight;
-                    setScale(newFactor);
-                }
-
-                if ((aspectRatio < ASPECT_RATIO) && (getWidth() != mWidth)
-                        && (params.width != ViewGroup.LayoutParams.MATCH_PARENT)) {
-                    // Absolute value, width is limiting factor
-                    final float newFactor = getWidth() / (float) mWidth;
-                    setScale(newFactor);
-                }
             }
 
         }
@@ -354,14 +351,14 @@ public class NumberView extends View {
 
             case ALIGN_START:
             default:
-                resolvedValue  = 0;
+                resolvedValue = 0;
         }
 
         return resolvedValue;
     }
 
     @Override
-    public void onDraw(Canvas canvas) {
+    public void onDraw(final Canvas canvas) {
         int count = canvas.saveLayer(0, 0, getWidth(), getHeight(), null,
                 Canvas.MATRIX_SAVE_FLAG |
                 Canvas.CLIP_SAVE_FLAG |
