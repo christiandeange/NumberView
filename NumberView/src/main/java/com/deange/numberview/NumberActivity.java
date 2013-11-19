@@ -17,6 +17,7 @@
 package com.deange.numberview;
 
 import android.app.Activity;
+import android.graphics.Paint;
 import android.os.Bundle;
 
 import java.util.Timer;
@@ -26,8 +27,10 @@ public class NumberActivity extends Activity {
 
     private final Timer mTimer = new Timer();
 
-    private NumberView mTensView;
-    private NumberView mOnesView;
+    private NumberView mMinuteTensView;
+    private NumberView mMinuteOnesView;
+    private NumberView mSecondTensView;
+    private NumberView mSecondOnesView;
 
     private int mTime = 0;
 
@@ -36,21 +39,43 @@ public class NumberActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mTensView = (NumberView) findViewById(R.id.number_tens_position);
-        mOnesView = (NumberView) findViewById(R.id.number_ones_position);
+        mSecondTensView = (NumberView) findViewById(R.id.number_second_tens_position);
+        mSecondOnesView = (NumberView) findViewById(R.id.number_second_ones_position);
+        mMinuteTensView = (NumberView) findViewById(R.id.number_minute_tens_position);
+        mMinuteOnesView = (NumberView) findViewById(R.id.number_minute_ones_position);
 
-        mTensView.setAutoAdvance(false);
-        mOnesView.setAutoAdvance(false);
+        mSecondTensView.setAutoAdvance(false);
+        mSecondOnesView.setAutoAdvance(false);
+        mMinuteTensView.setAutoAdvance(false);
+        mMinuteOnesView.setAutoAdvance(false);
 
-        mTensView.setSequence(new int[] { 0, 1, 2, 3, 4, 5 });
+        mSecondTensView.setSequence(new int[]{0, 1, 2, 3, 4, 5});
+        mMinuteTensView.setSequence(new int[]{0, 1, 2, 3, 4, 5});
+
+        final Paint thickPaint = mMinuteTensView.getPaint();
+        thickPaint.setStrokeWidth(5f);
+        mMinuteTensView.setPaint(thickPaint);
+        mMinuteOnesView.setPaint(thickPaint);
 
         mTimer.scheduleAtFixedRate(new UpdateTask(), 0, 1000);
     }
 
     private void updateUi() {
-        mOnesView.advance();
-        if (mTime % 10 == 0) {
-            mTensView.advance();
+
+        mSecondOnesView.advance();
+
+        if (mTime != 0) {
+            if (mTime % 10 == 0) {
+                mSecondTensView.advance();
+
+                if (mTime % 60 == 0) {
+                    mMinuteOnesView.advance();
+
+                    if (mTime % 600 == 0) {
+                        mMinuteTensView.advance();
+                    }
+                }
+            }
         }
 
         mTime++;

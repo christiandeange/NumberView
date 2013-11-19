@@ -22,12 +22,22 @@
         android:gravity="center">
 
     <com.deange.numberview.NumberView
-            android:id="@+id/number_tens_position"
+            android:id="@+id/number_minute_tens_position"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content" />
 
     <com.deange.numberview.NumberView
-            android:id="@+id/number_ones_position"
+            android:id="@+id/number_minute_ones_position"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content" />
+
+    <com.deange.numberview.NumberView
+            android:id="@+id/number_second_tens_position"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content" />
+
+    <com.deange.numberview.NumberView
+            android:id="@+id/number_second_ones_position"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content" />
 
