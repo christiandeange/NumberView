@@ -120,7 +120,6 @@ public class NumberView extends View {
     private int mWidth;
     private int mHeight;
 
-    private int mTempIndex;
     private int[] mTempSequence;
     private int[] mSequence;
 
@@ -175,7 +174,6 @@ public class NumberView extends View {
         mWidth = (int) (DEFAULT_WIDTH * mScale);
         mHeight = (int) (DEFAULT_HEIGHT * mScale);
 
-        mTempIndex = -1;
         mTempSequence = null;
         mSequence = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
@@ -205,6 +203,7 @@ public class NumberView extends View {
         } else {
             mSequence = new int[sequence.length];
             System.arraycopy(sequence, 0, mSequence, 0, sequence.length);
+            checkSequenceBounds();
         }
     }
 
@@ -285,7 +284,7 @@ public class NumberView extends View {
     }
 
     public void setCurrentNumberIndex(final int index) {
-        mTempIndex = mIndex;
+        mIndex = index;
     }
 
     private strictfp void setScale(float scale) {
@@ -341,8 +340,23 @@ public class NumberView extends View {
     }
 
     public void advance() {
-        mFrame = 0;
+
+        if (mFrame % mFrameCount == 0) {
+            mFrame = 0;
+
+        } else {
+            mIndex++;
+            checkSequenceBounds();
+        }
+
         postInvalidateDelayed(1);
+    }
+
+    private void checkSequenceBounds() {
+        if (mIndex >= mSequence.length) {
+            // Wrap around to the start of the sequence
+            mIndex = 0;
+        }
     }
 
     private void resolveLayoutParams() {
@@ -386,12 +400,7 @@ public class NumberView extends View {
 
     @Override
     public void onDraw(final Canvas canvas) {
-        int count = canvas.saveLayer(0, 0, getWidth(), getHeight(), null,
-                Canvas.MATRIX_SAVE_FLAG |
-                Canvas.CLIP_SAVE_FLAG |
-                Canvas.HAS_ALPHA_LAYER_SAVE_FLAG |
-                Canvas.FULL_COLOR_LAYER_SAVE_FLAG |
-                Canvas.CLIP_TO_LAYER_SAVE_FLAG);
+        int count = canvas.save();
 
         super.onDraw(canvas);
 
@@ -407,6 +416,7 @@ public class NumberView extends View {
         // Reset the path.
         mPath.reset();
 
+        checkSequenceBounds();
         final int nextNumberShown = mSequence[mIndex];
 
         final float[][] current = mPoints[mCurrent];
@@ -465,17 +475,6 @@ public class NumberView extends View {
             mCurrent = nextNumberShown;
             mIndex++;
 
-            // Pluck the value set by the user mid-transition
-            if (mTempIndex != -1) {
-                mIndex = mTempIndex;
-                mTempIndex = -1;
-            }
-
-            // Wrap around to the start of the sequence
-            if (mIndex >= mSequence.length) {
-                mIndex = 0;
-            }
-
             // Calculate wait time for the next second
             final long now = System.currentTimeMillis();
             frameDelay = mDuration - (int) (now - mLastChange);
@@ -487,6 +486,8 @@ public class NumberView extends View {
                 mSequence = mTempSequence;
                 mTempSequence = null;
             }
+
+            checkSequenceBounds();
         }
 
         // If we are not doing an auto advance, then
