@@ -2,6 +2,10 @@
 
 A simple number tweener.
 
+![](design/frame1.png)
+![](design/frame2.png)
+![](design/frame3.png)
+
 ---
 ###What is it?
 NumberView is mean to be a take on [Timely][1]'s beatiful and tasteful number tweening animations. Despite looking like it draws actual numbers in it, the numbers drawn are represented as Bèzier curve paths, meticulously calculated with control points and anchors.
