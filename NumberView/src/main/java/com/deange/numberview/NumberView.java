@@ -22,6 +22,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -241,6 +242,11 @@ public class NumberView extends View {
         return mPaint;
     }
 
+    public void setTextSize(final int sizeUnit, final float textSize) {
+        final float pixelSize = TypedValue.applyDimension(sizeUnit, textSize, getResources().getDisplayMetrics());
+        setTextSize(pixelSize);
+    }
+
     public void setTextSize(final float textSize) {
         mPaint.setTextSize(textSize);
         setScale(mPaint.measureText(MEASURING_TEXT) / mWidth);
@@ -359,23 +365,33 @@ public class NumberView extends View {
         }
     }
 
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        // Need to realign our drawing bounds.
+        // Otherwise, we get some strange bounds for the first frame
+        resolveLayoutParams();
+    }
+
     private void resolveLayoutParams() {
 
         final ViewGroup.LayoutParams params = getLayoutParams();
         if (params != null) {
-
+            boolean changeParams = false;
             if (params.height == ViewGroup.LayoutParams.WRAP_CONTENT) {
                 params.height = mHeight;
-                setLayoutParams(params);
+                changeParams = true;
             }
 
             if (params.width == ViewGroup.LayoutParams.WRAP_CONTENT) {
                 params.width = mWidth;
-                setLayoutParams(params);
+                changeParams = true;
             }
 
+            if (changeParams) {
+                setLayoutParams(params);
+            }
         }
-
     }
 
     private float resolveTranslatedValue(final int alignStyle, final int parentDimen, final int drawDimen) {

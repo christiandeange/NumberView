@@ -10,7 +10,7 @@ NumberView is mean to be a take on [Timely][1]'s beatiful and tasteful number tw
 
 ##Usage
 ---
-[NumberView][2] can be added in programatically into your layouts, or be included as a tag in resource files:
+Using [NumberView][2] in your project is simple. It is a standalone class, no resource files required. It can be added in programatically into your layouts, or be included as a tag in resource files:
 
 ```
 <com.deange.numberview.NumberView
@@ -18,13 +18,16 @@ NumberView is mean to be a take on [Timely][1]'s beatiful and tasteful number tw
         android:layout_width="wrap_content" />
 ```
 
-
-**DISCLAIMER:** NumberView has a built-in auto-advancing timing system that automatically tweens to the next value, but it isn't a perfect system, since it must be coupled with other view drawing events. It is recommended that you turn off auto-advancing using the `setAutoAdvance(boolean)` method), and manually call `advance()` when necessary. The [Timer][3] class is perfect for this sort of behaviour, especially if you will be using this for any fixed-rate mechanism. See the example activity class for a quick implementation.
-
-
 ##Dependencies
 ---
-No dependencies, works on all versions of Android, all the way back to 1.0!
+No dependencies. Works on all versions of Android, all the way back to 1.0!
+
+
+##Known Issues
+---
+I've seen some lag on the Nexus 5 running on ART. Not sure if this is specific to my device, all Nexus 5s, or ART entirely.
+
+NumberView has a built-in auto-advancing timing system that automatically tweens to the next value, but it isn't a perfect system, since it must be coupled with other view drawing events. It is recommended that you turn off auto-advancing using the `setAutoAdvance(boolean)` method), and manually call `advance()` when necessary. The [Timer][3] class is perfect for this sort of behaviour, especially if you will be using this for any fixed-rate mechanism. See the example activity class for a quick implementation.
 
 ##Developed By
 ---
