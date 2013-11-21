@@ -1,15 +1,13 @@
-NumberView
-==========
+#NumberView
 
 A simple number tweener.
 
-
-##What is it?
 ---
+###What is it?
 NumberView is mean to be a take on [Timely][1]'s beatiful and tasteful number tweening animations. Despite looking like it draws actual numbers in it, the numbers drawn are represented as Bèzier curve paths, meticulously calculated with control points and anchors.
 
-##Usage
 ---
+###Usage
 Using [NumberView][2] in your project is simple. It is a standalone class, no resource files required. It can be added in programatically into your layouts, or be included as a tag in resource files:
 
 ```
@@ -18,23 +16,23 @@ Using [NumberView][2] in your project is simple. It is a standalone class, no re
         android:layout_width="wrap_content" />
 ```
 
-##Dependencies
 ---
+###Dependencies
 No dependencies. Works on all versions of Android, all the way back to 1.0!
 
-
-##Known Issues
 ---
+###Known Issues
+
 I've seen some lag on the Nexus 5 running on ART. Not sure if this is specific to my device, all Nexus 5s, or ART entirely.
 
 NumberView has a built-in auto-advancing timing system that automatically tweens to the next value, but it isn't a perfect system, since it must be coupled with other view drawing events. It is recommended that you turn off auto-advancing using the `setAutoAdvance(boolean)` method), and manually call `advance()` when necessary. The [Timer][3] class is perfect for this sort of behaviour, especially if you will be using this for any fixed-rate mechanism. See the example activity class for a quick implementation.
 
-##Developed By
 ---
+###Developed By
 - Christian De Angelis - <christiandeange@gmail.com>
 
-##License
 ---
+###License
 ```
 Copyright 2013 Christian De Angelis
 
