@@ -345,6 +345,12 @@ public class NumberView extends View {
         return new float[] {70, 100};
     }
 
+    public void advance(final int nextIndex) {
+        // Convenience to set the next index and advance to it in one call
+        setCurrentNumberIndex(nextIndex);
+        advance();
+    }
+
     public void advance() {
 
         if (mFrame % mFrameCount == 0) {
