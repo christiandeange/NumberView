@@ -14,31 +14,60 @@
   ~ limitations under the License.
   -->
 
-<LinearLayout
+<RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:gravity="center">
+        android:layout_height="match_parent">
 
-    <com.deange.numberview.NumberView
-            android:id="@+id/number_minute_tens_position"
+    <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content" />
+            android:orientation="horizontal"
+            android:layout_centerVertical="true"
+            android:gravity="center">
 
-    <com.deange.numberview.NumberView
-            android:id="@+id/number_minute_ones_position"
+        <com.deange.numberview.NumberView
+                android:id="@+id/number_minute_tens_position"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
+
+        <com.deange.numberview.NumberView
+                android:id="@+id/number_minute_ones_position"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
+
+        <com.deange.numberview.NumberView
+                android:id="@+id/number_second_tens_position"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
+
+        <com.deange.numberview.NumberView
+                android:id="@+id/number_second_ones_position"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content" />
+            android:orientation="horizontal"
+            android:layout_alignParentBottom="true">
 
-    <com.deange.numberview.NumberView
-            android:id="@+id/number_second_tens_position"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content" />
+        <Button
+                android:id="@+id/button_reset"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/button_reset"/>
 
-    <com.deange.numberview.NumberView
-            android:id="@+id/number_second_ones_position"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content" />
+        <Button
+                android:id="@+id/button_start_stop"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/button_stop"/>
 
-</LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>

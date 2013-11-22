@@ -19,4 +19,8 @@
 
     <string name="app_name">NumberView</string>
 
+    <string name="button_reset">Reset</string>
+    <string name="button_start">Start</string>
+    <string name="button_stop">Stop</string>
+
 </resources>

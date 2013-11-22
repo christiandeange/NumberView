@@ -19,25 +19,38 @@ package com.deange.numberview;
 import android.app.Activity;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class NumberActivity extends Activity {
+public class NumberActivity extends Activity implements View.OnClickListener {
 
-    private final Timer mTimer = new Timer();
+    private Timer mTimer = new Timer();
 
     private NumberView mMinuteTensView;
     private NumberView mMinuteOnesView;
     private NumberView mSecondTensView;
     private NumberView mSecondOnesView;
 
+    private Button mResetButton;
+    private Button mStartStopButton;
+
     private int mTime = 0;
+
+    private boolean mStarted = true;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mResetButton = (Button) findViewById(R.id.button_reset);
+        mStartStopButton = (Button) findViewById(R.id.button_start_stop);
+
+        mResetButton.setOnClickListener(this);
+        mStartStopButton.setOnClickListener(this);
 
         mSecondTensView = (NumberView) findViewById(R.id.number_second_tens_position);
         mSecondOnesView = (NumberView) findViewById(R.id.number_second_ones_position);
@@ -57,28 +70,71 @@ public class NumberActivity extends Activity {
         mMinuteTensView.setPaint(thickPaint);
         mMinuteOnesView.setPaint(thickPaint);
 
-        mTimer.scheduleAtFixedRate(new UpdateTask(), 0, 1000);
+        startTimer();
     }
 
     private void updateUi() {
 
-        mSecondOnesView.advance();
+        mSecondOnesView.advance(mTime % 10);
 
-        if (mTime != 0) {
-            if (mTime % 10 == 0) {
-                mSecondTensView.advance();
+        if (mTime % 10 == 0) {
+            mSecondTensView.advance((mTime / 10) % 6);
 
-                if (mTime % 60 == 0) {
-                    mMinuteOnesView.advance();
+            if (mTime % 60 == 0) {
+                mMinuteOnesView.advance((mTime / 60) % 10);
 
-                    if (mTime % 600 == 0) {
-                        mMinuteTensView.advance();
-                    }
+                if (mTime % 600 == 0) {
+                    mMinuteTensView.advance((mTime / 600) % 6);
                 }
             }
         }
 
         mTime++;
+    }
+
+    private void startTimer() {
+        mTimer.scheduleAtFixedRate(new UpdateTask(), 0, 1000);
+    }
+
+    private void handleStartStop() {
+        if (mStarted) {
+            mTimer.cancel();
+            mTimer.purge();
+            mStartStopButton.setText(R.string.button_start);
+
+        } else {
+            mTimer = new Timer();
+            startTimer();
+            mStartStopButton.setText(R.string.button_stop);
+
+        }
+
+        mStarted = !mStarted;
+    }
+
+    private void handleReset() {
+        mTime = 0;
+
+        mSecondOnesView.advance(0);
+        mSecondTensView.advance(0);
+        mMinuteOnesView.advance(0);
+        mMinuteTensView.advance(0);
+
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+
+            case R.id.button_reset:
+                handleReset();
+                break;
+
+            case R.id.button_start_stop:
+                handleStartStop();
+                break;
+
+        }
     }
 
     private class UpdateTask extends TimerTask {
