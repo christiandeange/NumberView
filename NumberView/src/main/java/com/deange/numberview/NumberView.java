@@ -182,10 +182,12 @@ public class NumberView extends View {
         setAlignY(ALIGN_END);
 
         // Calculate the right value for the default text size
-        float size = 0;
+        int size = 0;
         do {
             size++;
-            mPaint.setTextSize(size);
+            final float scaledSize = TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_SP, size, getResources().getDisplayMetrics());
+            mPaint.setTextSize(scaledSize);
         } while (mPaint.measureText(MEASURING_TEXT) < mWidth);
 
         setTextSize(mPaint.getTextSize());
@@ -328,7 +330,7 @@ public class NumberView extends View {
 
         mScale = scale;
 
-        postInvalidateDelayed(1);
+        postInvalidate();
     }
 
     private strictfp void applyScale(final float[][][] array, final float scale) {
@@ -487,7 +489,7 @@ public class NumberView extends View {
         // Next frame.
         mFrame++;
 
-        int frameDelay = 1;
+        int frameDelay = 0;
 
         // End of the current number animation
         // Begin setting values for the next number in the sequence
