@@ -106,7 +106,6 @@ public class NumberActivity extends Activity implements View.OnClickListener {
             mTimer = new Timer();
             startTimer();
             mStartStopButton.setText(R.string.button_stop);
-
         }
 
         mStarted = !mStarted;
@@ -119,7 +118,6 @@ public class NumberActivity extends Activity implements View.OnClickListener {
         mSecondTensView.advance(0);
         mMinuteOnesView.advance(0);
         mMinuteTensView.advance(0);
-
     }
 
     @Override

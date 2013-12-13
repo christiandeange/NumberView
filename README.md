@@ -21,7 +21,7 @@ Using [NumberView][2] in your project is simple. It is a standalone class, no re
 
 ---
 ###Dependencies
-No dependencies. Works on all versions of Android, all the way back to 1.0!
+No dependencies. Works on all versions of Android, all the way back to API level 4!
 
 ---
 ###Known Issues
