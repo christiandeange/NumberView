@@ -21,6 +21,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
@@ -44,6 +47,9 @@ public class NumberView extends View {
     private static final String TAG = NumberView.class.getSimpleName();
 
     private static final boolean DEBUG = false;
+
+    private final Handler mHandler = new Handler();
+    private static final int HANDLER_WHAT = "what".hashCode();
 
     // "8" is used since it constitutes the widest number drawn
     private static final String MEASURING_TEXT = "8";
@@ -109,7 +115,6 @@ public class NumberView extends View {
     private final Path mPath = new Path();
 
     private long mLastChange = System.currentTimeMillis();
-    private long mWaitUntil;
 
     private int mIndex;
     private int mCurrent;
@@ -128,6 +133,13 @@ public class NumberView extends View {
     private float mScale;
     private int mDuration;
     private Interpolator mInterpolator;
+
+    private Runnable mInvalidateRunnable = new Runnable() {
+        @Override
+        public void run() {
+            invalidate();
+        }
+    };
 
     public enum TweenStyle {
         BOUNCE,
@@ -191,6 +203,13 @@ public class NumberView extends View {
         } while (mPaint.measureText(MEASURING_TEXT) < mWidth);
 
         setTextSize(mPaint.getTextSize());
+
+        setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                advanceImmediate();
+            }
+        });
     }
 
     public void setSequence(final int[] sequence) {
@@ -241,7 +260,7 @@ public class NumberView extends View {
     }
 
     public Paint getPaint() {
-        return mPaint;
+        return new Paint(mPaint);
     }
 
     public void setTextSize(final int sizeUnit, final float textSize) {
@@ -330,7 +349,7 @@ public class NumberView extends View {
 
         mScale = scale;
 
-        postInvalidate();
+        invalidateDelayed();
     }
 
     private strictfp void applyScale(final float[][][] array, final float scale) {
@@ -363,7 +382,18 @@ public class NumberView extends View {
             checkSequenceBounds();
         }
 
-        postInvalidateDelayed(1);
+        invalidateDelayed();
+    }
+
+    public void advanceImmediate(final int nextIndex) {
+        // Convenience to set the next index and advance to it in one call
+        setCurrentNumberIndex(nextIndex);
+        mFrame = mFrameCount;
+        invalidateDelayed();
+    }
+
+    public void advanceImmediate() {
+        advanceImmediate(mIndex + 1);
     }
 
     private void checkSequenceBounds() {
@@ -386,12 +416,12 @@ public class NumberView extends View {
         final ViewGroup.LayoutParams params = getLayoutParams();
         if (params != null) {
             boolean changeParams = false;
-            if (params.height == ViewGroup.LayoutParams.WRAP_CONTENT) {
+            if ((params.height == ViewGroup.LayoutParams.WRAP_CONTENT) && (params.height != mHeight)) {
                 params.height = mHeight;
                 changeParams = true;
             }
 
-            if (params.width == ViewGroup.LayoutParams.WRAP_CONTENT) {
+            if ((params.width == ViewGroup.LayoutParams.WRAP_CONTENT) && (params.width != mWidth)) {
                 params.width = mWidth;
                 changeParams = true;
             }
@@ -478,14 +508,6 @@ public class NumberView extends View {
 
         canvas.restoreToCount(count);
 
-        // Weird bug with the postDelayed time not being respected...
-        if (mWaitUntil != 0 && (System.currentTimeMillis() + 10 < mWaitUntil)) {
-            postInvalidateDelayed(mWaitUntil - System.currentTimeMillis());
-            return;
-        }
-
-        mWaitUntil = 0;
-
         // Next frame.
         mFrame++;
 
@@ -503,8 +525,6 @@ public class NumberView extends View {
             final long now = System.currentTimeMillis();
             frameDelay = mDuration - (int) (now - mLastChange);
 
-            mWaitUntil = now + frameDelay;
-
             // Update the sequence when this current number tween animation ends
             if (mTempSequence != null) {
                 mSequence = mTempSequence;
@@ -514,14 +534,28 @@ public class NumberView extends View {
             checkSequenceBounds();
         }
 
-        // If we are not doing an auto advance, then
+        // If we are not doing an auto advance, then stop!
         if ((!mAutoAdvance) && (mFrame == 0)) {
-            mWaitUntil = 0;
             return;
         }
 
         // Callback for the next frame.
-        postInvalidateDelayed(frameDelay);
+        invalidateDelayed(frameDelay);
     }
 
+    public void invalidateDelayed() {
+        invalidateDelayed(0);
+    }
+
+    // If we request an invalidation, then we have to ensure that we cancel any pending ones.
+    // This is to fix the weird issue with the delay not being respected
+    public void invalidateDelayed(final long delayMilliseconds) {
+
+        mHandler.removeMessages(HANDLER_WHAT);
+
+        final Message msg = Message.obtain(mHandler, mInvalidateRunnable);
+        msg.what = HANDLER_WHAT;
+
+        mHandler.sendMessageDelayed(msg, delayMilliseconds);
+    }
 }

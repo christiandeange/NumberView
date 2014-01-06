@@ -57,10 +57,10 @@ public class NumberActivity extends Activity implements View.OnClickListener {
         mMinuteTensView = (NumberView) findViewById(R.id.number_minute_tens_position);
         mMinuteOnesView = (NumberView) findViewById(R.id.number_minute_ones_position);
 
-        mSecondTensView.setAutoAdvance(false);
-        mSecondOnesView.setAutoAdvance(false);
-        mMinuteTensView.setAutoAdvance(false);
-        mMinuteOnesView.setAutoAdvance(false);
+//        mSecondTensView.setAutoAdvance(false);
+//        mSecondOnesView.setAutoAdvance(false);
+//        mMinuteTensView.setAutoAdvance(false);
+//        mMinuteOnesView.setAutoAdvance(false);
 
         mSecondTensView.setSequence(new int[]{0, 1, 2, 3, 4, 5});
         mMinuteTensView.setSequence(new int[]{0, 1, 2, 3, 4, 5});
@@ -70,7 +70,7 @@ public class NumberActivity extends Activity implements View.OnClickListener {
         mMinuteTensView.setPaint(thickPaint);
         mMinuteOnesView.setPaint(thickPaint);
 
-        startTimer();
+//        startTimer();
     }
 
     private void updateUi() {
@@ -114,10 +114,10 @@ public class NumberActivity extends Activity implements View.OnClickListener {
     private void handleReset() {
         mTime = 0;
 
-        mSecondOnesView.advance(0);
-        mSecondTensView.advance(0);
-        mMinuteOnesView.advance(0);
-        mMinuteTensView.advance(0);
+        mSecondOnesView.advanceImmediate(0);
+        mSecondTensView.advanceImmediate(0);
+        mMinuteOnesView.advanceImmediate(0);
+        mMinuteTensView.advanceImmediate(0);
     }
 
     @Override
