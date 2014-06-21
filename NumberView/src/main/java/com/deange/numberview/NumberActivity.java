@@ -66,9 +66,9 @@ public class NumberActivity extends Activity implements View.OnClickListener {
         mMinuteTensView.setSequence(new int[]{0, 1, 2, 3, 4, 5});
 
         final Paint thickPaint = mMinuteTensView.getPaint();
-        thickPaint.setStrokeWidth(5f);
-        mMinuteTensView.setPaint(thickPaint);
-        mMinuteOnesView.setPaint(thickPaint);
+//        thickPaint.setStrokeWidth(5f);
+//        mMinuteTensView.setPaint(thickPaint);
+//        mMinuteOnesView.setPaint(thickPaint);
 
         startTimer();
     }
