@@ -16,11 +16,8 @@
   -->
 
 <resources>
-
     <string name="app_name">NumberView</string>
-
-    <string name="button_reset">Reset</string>
-    <string name="button_start">Start</string>
-    <string name="button_stop">Stop</string>
-
+    <string name="button_reset">RESET</string>
+    <string name="button_start">START</string>
+    <string name="button_stop">STOP</string>
 </resources>
