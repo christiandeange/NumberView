@@ -108,9 +108,10 @@ public class NumberActivity extends Activity implements View.OnClickListener {
 
     private void handleReset() {
         mTime = 0;
-
-        handleStartStop();
-        handleStartStop();
+        mTimer.cancel();
+        mTimer.purge();
+        mTimer = new Timer();
+        startTimer();
 
         mSecondOnesView.setCurrentNumberIndex(0);
         mSecondTensView.setCurrentNumberIndex(0);
