@@ -48,11 +48,9 @@ public class NumberView extends View {
     // "8" is used since it constitutes the widest number drawn
     private static final String MEASURING_TEXT = "8";
 
-    public static final int ALIGN_START = 0;
-    public static final int ALIGN_CENTER = 1;
-    public static final int ALIGN_END = 2;
-
-    // Approximate default dimensions: 140x200
+    private static final int FRAME_COUNT = 24;
+    private static final float DEFAULT_WIDTH = 140;
+    private static final float DEFAULT_HEIGHT = 200;
 
     // NOTE: These fields are not static so that they may be scaled for each instance
     private float[][][] mPoints =
@@ -70,7 +68,7 @@ public class NumberView extends View {
         {empty(), empty(), empty(), empty(), empty()},
     };
 
-    // The set of the "first" control points of each segment.
+    // The set of the "first" control points of each segment
     private float[][][] mControlPoint1 =
     {
         {{14.5f, 60}, {103, 18}, {126, 140}, {37, 180}},
@@ -86,7 +84,7 @@ public class NumberView extends View {
         {empty(), empty(), empty(), empty(), empty()},
     };
 
-    // The set of the "second" control points of each segment.
+    // The set of the "second" control points of each segment
     private float[][][] mControlPoint2 =
     {
         {{37, 18}, {126, 60}, {103, 180}, {14.5f, 140}},
@@ -102,31 +100,20 @@ public class NumberView extends View {
         {empty(), empty(), empty(), empty(), empty()},
     };
 
-    private static final float DEFAULT_WIDTH = 140;
-    private static final float DEFAULT_HEIGHT = 200;
-
     private Paint mPaint = new Paint();
     private final Path mPath = new Path();
-
-    private long mLastChange = System.currentTimeMillis();
-    private long mWaitUntil;
 
     private int mIndex;
     private int mCurrent;
     private int mFrame;
-    private int mFrameCount;
 
-    private int mAlignX;
-    private int mAlignY;
     private int mWidth;
     private int mHeight;
 
     private int[] mTempSequence;
     private int[] mSequence;
 
-    private boolean mAutoAdvance;
     private float mScale;
-    private int mDuration;
     private Interpolator mInterpolator;
 
     public enum TweenStyle {
@@ -160,34 +147,27 @@ public class NumberView extends View {
         setWillNotDraw(false);
         setInterpolator(TweenStyle.ACCEL_DECEL);
 
-        // A new paint with the style as stroke.
+        // A new paint with the style as stroke
         mPaint.setAntiAlias(true);
         mPaint.setColor(Color.BLACK);
         mPaint.setStrokeWidth(2f);
         mPaint.setStyle(Paint.Style.STROKE);
 
-        // Set up timing values
-        mAutoAdvance = true;
-        mFrameCount = 24;
-        mDuration = 1000;
+        // Set up size values
         mScale = 1;
-
         mWidth = (int) (DEFAULT_WIDTH * mScale);
         mHeight = (int) (DEFAULT_HEIGHT * mScale);
 
         mTempSequence = null;
         mSequence = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-        setAlignX(ALIGN_CENTER);
-        setAlignY(ALIGN_END);
-
         // Calculate the right value for the default text size
-        int size = 0;
+        int spSize = 0;
         do {
-            size++;
-            final float scaledSize = TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_SP, size, getResources().getDisplayMetrics());
-            mPaint.setTextSize(scaledSize);
+            spSize++;
+            final float pixel = TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_SP, spSize, getResources().getDisplayMetrics());
+            mPaint.setTextSize(pixel);
         } while (mPaint.measureText(MEASURING_TEXT) < mWidth);
 
         setTextSize(mPaint.getTextSize());
@@ -199,7 +179,7 @@ public class NumberView extends View {
             throw new IllegalArgumentException("Sequence cannot be null");
         }
 
-        if (mFrame != mFrameCount) {
+        if (isAnimating()) {
             mTempSequence = new int[sequence.length];
             System.arraycopy(sequence, 0, mTempSequence, 0, sequence.length);
 
@@ -219,20 +199,11 @@ public class NumberView extends View {
     }
 
     public void setInterpolator(final Interpolator interpolator) {
-
         if (interpolator == null) {
             throw new IllegalArgumentException("Interpolator cannot be null");
         }
 
         mInterpolator = interpolator;
-    }
-
-    public void setDuration(final int duration) {
-        mDuration = duration;
-    }
-
-    public int getDuration() {
-        return mDuration;
     }
 
     public void setPaint(final Paint paint) {
@@ -241,7 +212,7 @@ public class NumberView extends View {
     }
 
     public Paint getPaint() {
-        return mPaint;
+        return new Paint(mPaint);
     }
 
     public void setTextSize(final int sizeUnit, final float textSize) {
@@ -254,48 +225,30 @@ public class NumberView extends View {
         setScale(mPaint.measureText(MEASURING_TEXT) / mWidth);
     }
 
-    public float getTextSize() {
-        return mPaint.getTextSize();
-    }
-
-    public void setAlignX(final int alignX) {
-        mAlignX = alignX;
-    }
-
-    public int getAlignX() {
-        return mAlignX;
-    }
-
-    public void setAlignY(final int alignY) {
-        mAlignY = alignY;
-    }
-
-    public int getAlignY() {
-        return mAlignY;
-    }
-
-    public void setAutoAdvance(final boolean autoAdvance) {
-        mAutoAdvance = autoAdvance;
-
-        if (!mAutoAdvance) {
-            // Reset frame
-            mFrame = 0;
-        }
-    }
-
-    public boolean isAutoAdvance() {
-        return mAutoAdvance;
-    }
-
     public int getCurrentNumber() {
         return mCurrent;
     }
 
     public void setCurrentNumberIndex(final int index) {
         mIndex = index;
+        checkSequenceBounds();
     }
 
-    private strictfp void setScale(float scale) {
+    public void advance() {
+        advance(mIndex + 1);
+    }
+
+    public void advance(final int nextIndex) {
+        // Convenience to set the next index and advance to it in one call
+        setCurrentNumberIndex(nextIndex);
+        checkSequenceBounds();
+
+        if (!isAnimating()) {
+            drawNextFrame();
+        }
+    }
+
+    private void setScale(float scale) {
 
         if (scale == 0) {
             throw new IllegalArgumentException("Scale cannot be 0");
@@ -330,7 +283,7 @@ public class NumberView extends View {
 
         mScale = scale;
 
-        postInvalidate();
+        drawNextFrame();
     }
 
     private strictfp void applyScale(final float[][][] array, final float scale) {
@@ -347,36 +300,24 @@ public class NumberView extends View {
         return new float[] {70, 100};
     }
 
-    public void advance(final int nextIndex) {
-        // Convenience to set the next index and advance to it in one call
-        setCurrentNumberIndex(nextIndex);
-        advance();
-    }
-
-    public void advance() {
-
-        if (mFrame % mFrameCount == 0) {
-            mFrame = 0;
-
-        } else {
-            mIndex++;
-            checkSequenceBounds();
-        }
-
-        postInvalidateDelayed(1);
-    }
-
     private void checkSequenceBounds() {
-        if (mIndex >= mSequence.length) {
-            // Wrap around to the start of the sequence
-            mIndex = 0;
-        }
+        // Wrap around to the start of the sequence. Ensures positive value
+        final int mod = mSequence.length;
+        mIndex = (mIndex % mod + mod) % mod;
+    }
+
+    private boolean isAnimating() {
+        return mFrame != 0;
+    }
+
+    private void drawNextFrame() {
+        postInvalidate();
     }
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        // Need to realign our drawing bounds.
+        // Need to realign our drawing bounds
         // Otherwise, we get some strange bounds for the first frame
         resolveLayoutParams();
     }
@@ -402,26 +343,6 @@ public class NumberView extends View {
         }
     }
 
-    private float resolveTranslatedValue(final int alignStyle, final int parentDimen, final int drawDimen) {
-        float resolvedValue;
-
-        switch (alignStyle) {
-            case ALIGN_CENTER:
-                resolvedValue = (parentDimen - drawDimen) / 2;
-                break;
-
-            case ALIGN_END:
-                resolvedValue = parentDimen - drawDimen;
-                break;
-
-            case ALIGN_START:
-            default:
-                resolvedValue = 0;
-        }
-
-        return resolvedValue;
-    }
-
     @Override
     public void onDraw(final Canvas canvas) {
         int count = canvas.save();
@@ -430,14 +351,10 @@ public class NumberView extends View {
 
         resolveLayoutParams();
 
-        if (mFrame == 0) {
-            mLastChange = System.currentTimeMillis();
-        }
+        // A factor of the diference between current and next frame based on interpolation
+        final float factor = mInterpolator.getInterpolation((float) mFrame / (float) FRAME_COUNT);
 
-        // A factor of the diference between current and next frame based on interpolation.
-        final float factor = mInterpolator.getInterpolation((float) mFrame / (float) mFrameCount);
-
-        // Reset the path.
+        // Reset the path
         mPath.reset();
 
         checkSequenceBounds();
@@ -450,15 +367,15 @@ public class NumberView extends View {
         final float[][] curr2 = mControlPoint2[mCurrent];
         final float[][] next2 = mControlPoint2[nextNumberShown];
 
-        final float translateX = resolveTranslatedValue(mAlignX, getWidth(), mWidth);
-        final float translateY = resolveTranslatedValue(mAlignY, getHeight(), mHeight);
+        final float translateX = (getWidth()  -  mWidth) / 2;
+        final float translateY = (getHeight() - mHeight) / 2;
 
         // Draw the first point
         mPath.moveTo(
                 current[0][0] + ((next[0][0] - current[0][0]) * factor + translateX),
                 current[0][1] + ((next[0][1] - current[0][1]) * factor + translateY));
 
-        // Connect the rest of the points as a bezier curve.
+        // Connect the rest of the points as a bezier curve
         for (int i = 0; i < 4; i++) {
             mPath.cubicTo(
                     curr1[i][0] + ((next1[i][0] - curr1[i][0]) * factor + translateX),         // Control point 1
@@ -469,7 +386,7 @@ public class NumberView extends View {
                     current[i + 1][1] + ((next[i + 1][1] - current[i + 1][1]) * factor + translateY));
         }
 
-        // Draw the path.
+        // Draw the path
         canvas.drawPath(mPath, mPaint);
 
         if (DEBUG) {
@@ -478,32 +395,16 @@ public class NumberView extends View {
 
         canvas.restoreToCount(count);
 
-        // Weird bug with the postDelayed time not being respected...
-        if (mWaitUntil != 0 && (System.currentTimeMillis() + 10 < mWaitUntil)) {
-            postInvalidateDelayed(mWaitUntil - System.currentTimeMillis());
-            return;
-        }
-
-        mWaitUntil = 0;
-
-        // Next frame.
+        // Next frame
         mFrame++;
-
-        int frameDelay = 0;
 
         // End of the current number animation
         // Begin setting values for the next number in the sequence
-        if (mFrame > mFrameCount) {
+        if (mFrame > FRAME_COUNT) {
 
             mFrame = 0;
             mCurrent = nextNumberShown;
             mIndex++;
-
-            // Calculate wait time for the next second
-            final long now = System.currentTimeMillis();
-            frameDelay = mDuration - (int) (now - mLastChange);
-
-            mWaitUntil = now + frameDelay;
 
             // Update the sequence when this current number tween animation ends
             if (mTempSequence != null) {
@@ -512,16 +413,11 @@ public class NumberView extends View {
             }
 
             checkSequenceBounds();
-        }
 
-        // If we are not doing an auto advance, then
-        if ((!mAutoAdvance) && (mFrame == 0)) {
-            mWaitUntil = 0;
-            return;
+        } else {
+            // Callback for the next frame.
+            drawNextFrame();
         }
-
-        // Callback for the next frame.
-        postInvalidateDelayed(frameDelay);
     }
 
 }

@@ -28,7 +28,7 @@ No dependencies. Works on all versions of Android, all the way back to API level
 
 I've seen some lag on the Nexus 5 running on ART. Not sure if this is specific to my device, all Nexus 5s, or ART entirely.
 
-NumberView has a built-in auto-advancing timing system that automatically tweens to the next value, but it isn't a perfect system, since it must be coupled with other view drawing events. It is recommended that you turn off auto-advancing using the `setAutoAdvance(boolean)` method), and manually call `advance()` when necessary. The [Timer][3] class is perfect for this sort of behaviour, especially if you will be using this for any fixed-rate mechanism. See the example activity class for a quick implementation.
+NumberView no longer has a built-in auto-advancing timing system that automatically tweens to the next value, since it isn't a perfect system. It is recommended that you manually call `advance()` when necessary. The [Timer][3] class is perfect for this sort of fixed-rate behaviour. See the example activity class for a quick implementation.
 
 ---
 ###Developed By
