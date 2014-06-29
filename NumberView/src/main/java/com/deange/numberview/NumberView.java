@@ -89,7 +89,7 @@ public class NumberView extends View {
                     {empty(), empty(), empty(), empty(), empty()},
             };
 
-    private Paint mPaint = new Paint();
+    private final NumberViewPaint mPaint = new NumberViewPaint();
     private final Path mPath = new Path();
 
     private int mNext;
@@ -134,7 +134,7 @@ public class NumberView extends View {
             spSize++;
             final float pixel = TypedValue.applyDimension(
                     TypedValue.COMPLEX_UNIT_SP, spSize, getResources().getDisplayMetrics());
-            mPaint.setTextSize(pixel);
+            mPaint.setTextSizeInternal(pixel);
         } while (mPaint.measureText(MEASURING_TEXT) < mWidth);
 
         setTextSize(mPaint.getTextSize());
@@ -170,12 +170,11 @@ public class NumberView extends View {
     }
 
     public void setPaint(final Paint paint) {
-        mPaint = new Paint(paint);
-        setScale(mPaint.measureText(MEASURING_TEXT) / mWidth);
+        mPaint.set(paint);
     }
 
     public Paint getPaint() {
-        return new Paint(mPaint);
+        return mPaint;
     }
 
     public void setTextSize(final int sizeUnit, final float textSize) {
@@ -185,7 +184,6 @@ public class NumberView extends View {
 
     public void setTextSize(final float textSize) {
         mPaint.setTextSize(textSize);
-        setScale(mPaint.measureText(MEASURING_TEXT) / mWidth);
     }
 
     public int getCurrentNumber() {
@@ -449,6 +447,24 @@ public class NumberView extends View {
                         return new SavedState[size];
                     }
                 };
+    }
+
+    private class NumberViewPaint extends Paint {
+        @Override
+        public void setTextSize(final float textSize) {
+            super.setTextSize(textSize);
+            setScale(measureText(MEASURING_TEXT) / mWidth);
+        }
+
+        @Override
+        public void set(final Paint src) {
+            super.set(src);
+            setScale(measureText(MEASURING_TEXT) / mWidth);
+        }
+
+        protected void setTextSizeInternal(final float textSize) {
+            super.setTextSize(textSize);
+        }
     }
 
 }
