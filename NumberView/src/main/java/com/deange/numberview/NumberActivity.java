@@ -27,6 +27,8 @@ import java.util.TimerTask;
 
 public class NumberActivity extends Activity implements View.OnClickListener {
 
+    private static final String KEY_TIME = "time";
+
     private Timer mTimer = new Timer();
 
     private NumberView mMinuteTensView;
@@ -39,7 +41,7 @@ public class NumberActivity extends Activity implements View.OnClickListener {
 
     private int mTime = 0;
 
-    private boolean mStarted = true;
+    private boolean mStarted = false;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -65,24 +67,36 @@ public class NumberActivity extends Activity implements View.OnClickListener {
         mMinuteTensView.setPaint(thickPaint);
         mMinuteOnesView.setPaint(thickPaint);
 
+        mTime = savedInstanceState == null ? 0 : savedInstanceState.getInt(KEY_TIME);
+
+        mTimer = new Timer();
         startTimer();
+    }
+
+//    @Override
+//    protected void onResume() {
+//        handleStartStop();
+//        super.onResume();
+//    }
+//
+//    @Override
+//    protected void onPause() {
+//        handleStartStop();
+//        super.onPause();
+//    }
+
+    @Override
+    protected void onSaveInstanceState(final Bundle outState) {
+        outState.putInt(KEY_TIME, mTime);
+        super.onSaveInstanceState(outState);
     }
 
     private void updateUi() {
 
         mSecondOnesView.advance(mTime % 10);
-
-        if (mTime % 10 == 0) {
-            mSecondTensView.advance((mTime / 10) % 6);
-
-            if (mTime % 60 == 0) {
-                mMinuteOnesView.advance((mTime / 60) % 10);
-
-                if (mTime % 600 == 0) {
-                    mMinuteTensView.advance((mTime / 600) % 6);
-                }
-            }
-        }
+        mSecondTensView.advance((mTime / 10) % 6);
+        mMinuteOnesView.advance((mTime / 60) % 10);
+        mMinuteTensView.advance((mTime / 600) % 6);
 
         mTime++;
     }
@@ -113,10 +127,10 @@ public class NumberActivity extends Activity implements View.OnClickListener {
         mTimer = new Timer();
         startTimer();
 
-        mSecondOnesView.setCurrentNumberIndex(0);
-        mSecondTensView.setCurrentNumberIndex(0);
-        mMinuteOnesView.setCurrentNumberIndex(0);
-        mMinuteTensView.setCurrentNumberIndex(0);
+        mSecondOnesView.setNextNumberIndex(0);
+        mSecondTensView.setNextNumberIndex(0);
+        mMinuteOnesView.setNextNumberIndex(0);
+        mMinuteTensView.setNextNumberIndex(0);
     }
 
     @Override

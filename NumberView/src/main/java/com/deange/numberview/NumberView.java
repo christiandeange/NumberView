@@ -21,6 +21,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
@@ -54,58 +56,60 @@ public class NumberView extends View {
 
     // NOTE: These fields are not static so that they may be scaled for each instance
     private float[][][] mPoints =
-    {
-        {{14.5f, 100}, {70, 18}, {126, 100}, {70, 180}, {14.5f, 100}},
-        {{47, 20.5f}, {74.5f, 20.5f}, {74.5f, 181}, {74.5f, 181}, {74.5f, 181}},
-        {{26, 60}, {114.5f, 61}, {78, 122}, {27, 177}, {117, 177}},
-        {{33.25f, 54}, {69.5f, 18}, {69.5f, 96}, {70, 180}, {26.5f, 143}},
-        {{125, 146}, {13, 146}, {99, 25}, {99, 146}, {99, 179}},
-        {{116, 20}, {61, 20}, {42, 78}, {115, 129}, {15, 154}},
-        {{80, 20}, {80, 20}, {16, 126}, {123, 126}, {23, 100}},
-        {{17, 21}, {128, 21}, {90.67f, 73.34f}, {53.34f, 126.67f}, {16, 181}},
-        {{71, 96}, {71, 19}, {71, 96}, {71, 179}, {71, 96}},
-        {{117, 100}, {17, 74}, {124, 74}, {60, 180}, {60, 180}},
-        {empty(), empty(), empty(), empty(), empty()},
-    };
+            {
+                    {{14.5f, 100}, {70, 18}, {126, 100}, {70, 180}, {14.5f, 100}},
+                    {{47, 20.5f}, {74.5f, 20.5f}, {74.5f, 181}, {74.5f, 181}, {74.5f, 181}},
+                    {{26, 60}, {114.5f, 61}, {78, 122}, {27, 177}, {117, 177}},
+                    {{33.25f, 54}, {69.5f, 18}, {69.5f, 96}, {70, 180}, {26.5f, 143}},
+                    {{125, 146}, {13, 146}, {99, 25}, {99, 146}, {99, 179}},
+                    {{116, 20}, {61, 20}, {42, 78}, {115, 129}, {15, 154}},
+                    {{80, 20}, {80, 20}, {16, 126}, {123, 126}, {23, 100}},
+                    {{17, 21}, {128, 21}, {90.67f, 73.34f}, {53.34f, 126.67f}, {16, 181}},
+                    {{71, 96}, {71, 19}, {71, 96}, {71, 179}, {71, 96}},
+                    {{117, 100}, {17, 74}, {124, 74}, {60, 180}, {60, 180}},
+                    {empty(), empty(), empty(), empty(), empty()},
+            };
 
     // The set of the "first" control points of each segment
     private float[][][] mControlPoint1 =
-    {
-        {{14.5f, 60}, {103, 18}, {126, 140}, {37, 180}},
-        {{47, 20.5f}, {74.5f, 20.5f}, {74.5f, 181}, {74.5f, 181}},
-        {{29, 2}, {114.5f, 78}, {64, 138}, {27, 177}},
-        {{33, 27}, {126, 18}, {128, 96}, {24, 180}},
-        {{125, 146}, {13, 146}, {99, 25}, {99, 146}},
-        {{61, 20}, {42, 78}, {67, 66}, {110, 183}},
-        {{80, 20}, {41, 79}, {22, 208}, {116, 66}},
-        {{17, 21}, {128, 21}, {90.67f, 73.34f}, {53.34f, 126.67f}},
-        {{14, 95}, {124, 19}, {14, 96}, {124, 179}},
-        {{94, 136}, {12, 8}, {122, 108}, {60, 180}},
-        {empty(), empty(), empty(), empty(), empty()},
-    };
+            {
+                    {{14.5f, 60}, {103, 18}, {126, 140}, {37, 180}},
+                    {{47, 20.5f}, {74.5f, 20.5f}, {74.5f, 181}, {74.5f, 181}},
+                    {{29, 2}, {114.5f, 78}, {64, 138}, {27, 177}},
+                    {{33, 27}, {126, 18}, {128, 96}, {24, 180}},
+                    {{125, 146}, {13, 146}, {99, 25}, {99, 146}},
+                    {{61, 20}, {42, 78}, {67, 66}, {110, 183}},
+                    {{80, 20}, {41, 79}, {22, 208}, {116, 66}},
+                    {{17, 21}, {128, 21}, {90.67f, 73.34f}, {53.34f, 126.67f}},
+                    {{14, 95}, {124, 19}, {14, 96}, {124, 179}},
+                    {{94, 136}, {12, 8}, {122, 108}, {60, 180}},
+                    {empty(), empty(), empty(), empty(), empty()},
+            };
 
     // The set of the "second" control points of each segment
     private float[][][] mControlPoint2 =
-    {
-        {{37, 18}, {126, 60}, {103, 180}, {14.5f, 140}},
-        {{74.5f, 20.5f}, {74.5f, 181}, {74.5f, 181}, {74.5f, 181}},
-        {{113, 4}, {100, 98}, {44, 155}, {117, 177}},
-        {{56, 18}, {116, 96}, {120, 180}, {26, 150}},
-        {{13, 146}, {99, 25}, {99, 146}, {99, 179}},
-        {{61, 20}, {42, 78}, {115, 85}, {38, 198}},
-        {{80, 20}, {18, 92}, {128, 192}, {46, 64}},
-        {{128, 21}, {90.67f, 73.34f}, {53.34f, 126.67f}, {16, 181}},
-        {{14, 19}, {124, 96}, {6, 179}, {124, 96}},
-        {{24, 134}, {118, -8}, {99, 121}, {60, 180}},
-        {empty(), empty(), empty(), empty(), empty()},
-    };
+            {
+                    {{37, 18}, {126, 60}, {103, 180}, {14.5f, 140}},
+                    {{74.5f, 20.5f}, {74.5f, 181}, {74.5f, 181}, {74.5f, 181}},
+                    {{113, 4}, {100, 98}, {44, 155}, {117, 177}},
+                    {{56, 18}, {116, 96}, {120, 180}, {26, 150}},
+                    {{13, 146}, {99, 25}, {99, 146}, {99, 179}},
+                    {{61, 20}, {42, 78}, {115, 85}, {38, 198}},
+                    {{80, 20}, {18, 92}, {128, 192}, {46, 64}},
+                    {{128, 21}, {90.67f, 73.34f}, {53.34f, 126.67f}, {16, 181}},
+                    {{14, 19}, {124, 96}, {6, 179}, {124, 96}},
+                    {{24, 134}, {118, -8}, {99, 121}, {60, 180}},
+                    {empty(), empty(), empty(), empty(), empty()},
+            };
 
     private Paint mPaint = new Paint();
     private final Path mPath = new Path();
 
-    private int mIndex;
+    private int mNext;
     private int mCurrent;
     private int mFrame;
+    private boolean mFirstDraw;
+    private boolean mDrawRequested;
 
     private int mWidth;
     private int mHeight;
@@ -154,6 +158,7 @@ public class NumberView extends View {
         mPaint.setStyle(Paint.Style.STROKE);
 
         // Set up size values
+        mFirstDraw = true;
         mScale = 1;
         mWidth = (int) (DEFAULT_WIDTH * mScale);
         mHeight = (int) (DEFAULT_HEIGHT * mScale);
@@ -226,25 +231,25 @@ public class NumberView extends View {
     }
 
     public int getCurrentNumber() {
-        return mCurrent;
+        return mSequence[mCurrent];
     }
 
-    public void setCurrentNumberIndex(final int index) {
-        mIndex = index;
+    public void setNextNumberIndex(final int next) {
+        mNext = next;
         checkSequenceBounds();
     }
 
     public void advance() {
-        advance(mIndex + 1);
+        advance(mNext + 1);
     }
 
     public void advance(final int nextIndex) {
         // Convenience to set the next index and advance to it in one call
-        setCurrentNumberIndex(nextIndex);
+        setNextNumberIndex(nextIndex);
         checkSequenceBounds();
 
         if (!isAnimating()) {
-            drawNextFrame();
+            drawNextNumber();
         }
     }
 
@@ -283,7 +288,8 @@ public class NumberView extends View {
 
         mScale = scale;
 
-        drawNextFrame();
+        mFirstDraw = false;
+        postInvalidate();
     }
 
     private strictfp void applyScale(final float[][][] array, final float scale) {
@@ -303,14 +309,15 @@ public class NumberView extends View {
     private void checkSequenceBounds() {
         // Wrap around to the start of the sequence. Ensures positive value
         final int mod = mSequence.length;
-        mIndex = (mIndex % mod + mod) % mod;
+        mNext = (mNext % mod + mod) % mod;
     }
 
     private boolean isAnimating() {
         return mFrame != 0;
     }
 
-    private void drawNextFrame() {
+    private void drawNextNumber() {
+        mDrawRequested = true;
         postInvalidate();
     }
 
@@ -345,30 +352,31 @@ public class NumberView extends View {
 
     @Override
     public void onDraw(final Canvas canvas) {
-        int count = canvas.save();
 
         super.onDraw(canvas);
 
         resolveLayoutParams();
 
-        // A factor of the diference between current and next frame based on interpolation
-        final float factor = mInterpolator.getInterpolation((float) mFrame / (float) FRAME_COUNT);
-
         // Reset the path
         mPath.reset();
 
         checkSequenceBounds();
-        final int nextNumberShown = mSequence[mIndex];
+        final int thisNumberShown = mFirstDraw ? 10 : mSequence[mCurrent];
+        final int nextNumberShown = mSequence[mNext];
 
-        final float[][] current = mPoints[mCurrent];
+        final float[][] current = mPoints[thisNumberShown];
         final float[][] next = mPoints[nextNumberShown];
-        final float[][] curr1 = mControlPoint1[mCurrent];
+        final float[][] curr1 = mControlPoint1[thisNumberShown];
         final float[][] next1 = mControlPoint1[nextNumberShown];
-        final float[][] curr2 = mControlPoint2[mCurrent];
+        final float[][] curr2 = mControlPoint2[thisNumberShown];
         final float[][] next2 = mControlPoint2[nextNumberShown];
 
         final float translateX = (getWidth()  -  mWidth) / 2;
         final float translateY = (getHeight() - mHeight) / 2;
+
+        // A factor of the diference between current and next frame based on interpolation
+        // If we ourselves did not specifically request drawing, then draw our previous state
+        final float factor = mInterpolator.getInterpolation((float) mFrame / (float) FRAME_COUNT);
 
         // Draw the first point
         mPath.moveTo(
@@ -393,7 +401,10 @@ public class NumberView extends View {
             canvas.drawRect(0, 0, getWidth(), getHeight(), mPaint);
         }
 
-        canvas.restoreToCount(count);
+        if (!mDrawRequested) {
+            return;
+        }
+        mDrawRequested = false;
 
         // Next frame
         mFrame++;
@@ -403,8 +414,9 @@ public class NumberView extends View {
         if (mFrame > FRAME_COUNT) {
 
             mFrame = 0;
-            mCurrent = nextNumberShown;
-            mIndex++;
+            mFirstDraw = false;
+            mCurrent = mNext;
+            mNext++;
 
             // Update the sequence when this current number tween animation ends
             if (mTempSequence != null) {
@@ -416,8 +428,69 @@ public class NumberView extends View {
 
         } else {
             // Callback for the next frame.
-            drawNextFrame();
+            drawNextNumber();
         }
+    }
+
+    @Override
+    public Parcelable onSaveInstanceState() {
+        final SavedState ss = new SavedState(super.onSaveInstanceState());
+
+        ss.next = mNext;
+        ss.current = mCurrent;
+        ss.firstDraw = mFirstDraw;
+
+        return ss;
+    }
+
+    @Override
+    public void onRestoreInstanceState(Parcelable state) {
+        if (!(state instanceof SavedState)) {
+            super.onRestoreInstanceState(state);
+            return;
+        }
+
+        final SavedState ss = (SavedState) state;
+        super.onRestoreInstanceState(ss.getSuperState());
+
+        mNext = ss.next;
+        mCurrent = ss.current;
+        mFirstDraw = ss.firstDraw;
+    }
+
+    private static class SavedState extends BaseSavedState {
+        public int next;
+        public int current;
+        public boolean firstDraw;
+
+        private SavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        private SavedState(Parcel in) {
+            super(in);
+            next = in.readInt();
+            current = in.readInt();
+            firstDraw = in.readInt() != 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeInt(next);
+            out.writeInt(current);
+            out.writeInt(firstDraw ? 1 : 0);
+        }
+
+        public static final Parcelable.Creator<SavedState> CREATOR =
+                new Parcelable.Creator<SavedState>() {
+                    public SavedState createFromParcel(Parcel in) {
+                        return new SavedState(in);
+                    }
+                    public SavedState[] newArray(int size) {
+                        return new SavedState[size];
+                    }
+                };
     }
 
 }
