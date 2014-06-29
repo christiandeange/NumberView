@@ -380,8 +380,9 @@ public class NumberView extends View {
     public Parcelable onSaveInstanceState() {
         final SavedState ss = new SavedState(super.onSaveInstanceState());
 
+        // If we are animating while saving state, skip to the end by saving mCurrent as mNext
         ss.next = mNext;
-        ss.current = mCurrent;
+        ss.current = isAnimating() ? mNext : mCurrent;
         ss.firstDraw = mFirstDraw;
 
         return ss;
