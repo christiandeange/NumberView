@@ -219,24 +219,12 @@ public class NumberView extends View {
 
         if (mScale == scale) return;
 
+        // We must reset the values back to normal and then multiply them by the new scale
+        // We can do this all at once by using the inverseFactor!
         final float inverseFactor = (scale / mScale);
 
         mWidth *= inverseFactor;
         mHeight *= inverseFactor;
-
-        // We must reset the values back to normal and then multiply them by the new scale
-        // We can do this all at once by using the inverseFactor!
-        //
-        // inverseFactor = new / old;
-        // mScale = old (originally)
-        // mScale * inverseFactor
-        //      = mScale * new / old
-        //      = old * (new / old)
-        //      = new * (old / old)
-        //      = new
-        //
-        // This changes the scale to the new value
-        // </math>
 
         applyScale(mPoints, inverseFactor);
         applyScale(mControlPoint1, inverseFactor);
