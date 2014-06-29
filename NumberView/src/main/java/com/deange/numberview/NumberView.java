@@ -89,14 +89,7 @@ public class NumberView extends View {
                     {empty(), empty(), empty(), empty(), empty()},
             };
 
-    private final Paint mPaint = new Paint() {
-        @Override
-        public void setTextSize(final float textSize) {
-            super.setTextSize(textSize);
-            onPaintTextSizeChanged(textSize);
-        }
-    };
-
+    private Paint mPaint = new Paint();
     private final Path mPath = new Path();
 
     private int mNext;
@@ -177,12 +170,12 @@ public class NumberView extends View {
     }
 
     public void setPaint(final Paint paint) {
-        mPaint.set(paint);
+        mPaint = new Paint(paint);
         setScale(mPaint.measureText(MEASURING_TEXT) / mWidth);
     }
 
     public Paint getPaint() {
-        return mPaint;
+        return new Paint(mPaint);
     }
 
     public void setTextSize(final int sizeUnit, final float textSize) {
@@ -192,10 +185,6 @@ public class NumberView extends View {
 
     public void setTextSize(final float textSize) {
         mPaint.setTextSize(textSize);
-        setScale(mPaint.measureText(MEASURING_TEXT) / mWidth);
-    }
-
-    private void onPaintTextSizeChanged(final float textSize) {
         setScale(mPaint.measureText(MEASURING_TEXT) / mWidth);
     }
 
