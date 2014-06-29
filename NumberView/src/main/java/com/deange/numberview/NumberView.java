@@ -28,22 +28,9 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.AnticipateInterpolator;
-import android.view.animation.AnticipateOvershootInterpolator;
-import android.view.animation.BounceInterpolator;
-import android.view.animation.CycleInterpolator;
-import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
-import android.view.animation.LinearInterpolator;
-import android.view.animation.OvershootInterpolator;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class NumberView extends View {
-
-    private static final String TAG = NumberView.class.getSimpleName();
 
     private static final boolean DEBUG = false;
 
@@ -120,36 +107,11 @@ public class NumberView extends View {
     private float mScale;
     private Interpolator mInterpolator;
 
-    public enum TweenStyle {
-        BOUNCE,
-        OVERSHOOT,
-        ANTICIPATE,
-        ANTICIPATE_OVERSHOOT,
-        ACCEL,
-        DECEL,
-        ACCEL_DECEL,
-        WACKY,
-        NONE,
-    }
-
-    private static final Map<TweenStyle, Interpolator> mInterpolators = new HashMap<TweenStyle, Interpolator>();
-    static {
-        mInterpolators.put(TweenStyle.BOUNCE, new BounceInterpolator());
-        mInterpolators.put(TweenStyle.OVERSHOOT, new OvershootInterpolator());
-        mInterpolators.put(TweenStyle.ANTICIPATE, new AnticipateInterpolator());
-        mInterpolators.put(TweenStyle.ANTICIPATE_OVERSHOOT, new AnticipateOvershootInterpolator());
-        mInterpolators.put(TweenStyle.ACCEL, new AccelerateInterpolator());
-        mInterpolators.put(TweenStyle.DECEL, new DecelerateInterpolator());
-        mInterpolators.put(TweenStyle.ACCEL_DECEL, new AccelerateDecelerateInterpolator());
-        mInterpolators.put(TweenStyle.WACKY, new CycleInterpolator(1));
-        mInterpolators.put(TweenStyle.NONE, new LinearInterpolator());
-    }
-
     public NumberView(final Context context, final AttributeSet attrs) {
         super(context, attrs);
 
         setWillNotDraw(false);
-        setInterpolator(TweenStyle.ACCEL_DECEL);
+        mInterpolator = new AccelerateDecelerateInterpolator();
 
         // A new paint with the style as stroke
         mPaint.setAntiAlias(true);
@@ -197,10 +159,6 @@ public class NumberView extends View {
 
     public int[] getSequence() {
         return mSequence;
-    }
-
-    public void setInterpolator(final TweenStyle style) {
-        setInterpolator(mInterpolators.get(style));
     }
 
     public void setInterpolator(final Interpolator interpolator) {
