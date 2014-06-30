@@ -68,22 +68,19 @@ public class NumberActivity extends Activity implements View.OnClickListener {
         mMinuteOnesView.setPaint(thickPaint);
 
         mTime = savedInstanceState == null ? 0 : savedInstanceState.getInt(KEY_TIME);
-
-        mTimer = new Timer();
-        startTimer();
     }
 
-//    @Override
-//    protected void onResume() {
-//        handleStartStop();
-//        super.onResume();
-//    }
-//
-//    @Override
-//    protected void onPause() {
-//        handleStartStop();
-//        super.onPause();
-//    }
+    @Override
+    protected void onResume() {
+        handleStartStop();
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        handleStartStop();
+        super.onPause();
+    }
 
     @Override
     protected void onSaveInstanceState(final Bundle outState) {
