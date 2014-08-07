@@ -209,6 +209,20 @@ public class NumberView extends View {
         }
     }
 
+    public void advanceImmediate() {
+        advanceImmediate(mNext + 1);
+    }
+
+    public void advanceImmediate(final int nextIndex) {
+        // Convenience to set the next index and advance to it immediately in one call
+        setNextNumberIndex(nextIndex);
+        mCurrent = mNext;
+
+        if (!isAnimating()) {
+            postInvalidate();
+        }
+    }
+
     private void setScale(float scale) {
 
         if (scale == 0) {
