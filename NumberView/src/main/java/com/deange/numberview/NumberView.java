@@ -320,8 +320,7 @@ public class NumberView extends View {
         mPath.reset();
 
         checkSequenceBounds();
-        final int thisIndex = mFirstDraw ? EMPTY_POSITION : mCurrent;
-        final int thisNumberShown = mSequence[thisIndex];
+        final int thisNumberShown = mFirstDraw ? EMPTY_POSITION : mSequence[mCurrent];
         final int nextNumberShown = mSequence[mNext];
 
         final float[][] current = mPoints[thisNumberShown];
