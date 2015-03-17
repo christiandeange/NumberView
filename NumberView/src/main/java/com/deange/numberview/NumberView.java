@@ -16,11 +16,13 @@
 
 package com.deange.numberview;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.AttributeSet;
@@ -37,6 +39,7 @@ public class NumberView extends View {
     // "8" is used since it constitutes the widest number drawn
     private static final String MEASURING_TEXT = "8";
 
+    private static final int[] DEFAULT_SEQUENCE = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     private static final int FRAME_COUNT = 24;
     private static final int EMPTY_POSITION = 10;
     private static final float DEFAULT_WIDTH = 140;
@@ -108,9 +111,28 @@ public class NumberView extends View {
     private float mScale;
     private Interpolator mInterpolator;
 
+    public NumberView(final Context context) {
+        super(context);
+        init();
+    }
+
     public NumberView(final Context context, final AttributeSet attrs) {
         super(context, attrs);
+        init();
+    }
 
+    public NumberView(final Context context, final AttributeSet attrs, final int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        init();
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public NumberView(final Context context, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
+        init();
+    }
+
+    private void init() {
         setWillNotDraw(false);
         mInterpolator = new AccelerateDecelerateInterpolator();
 
@@ -127,7 +149,7 @@ public class NumberView extends View {
         mHeight = (int) (DEFAULT_HEIGHT * mScale);
 
         mTempSequence = null;
-        mSequence = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        mSequence = DEFAULT_SEQUENCE;
 
         // Calculate the right value for the default text size
         int spSize = 0;
@@ -156,10 +178,6 @@ public class NumberView extends View {
             System.arraycopy(sequence, 0, mSequence, 0, sequence.length);
             checkSequenceBounds();
         }
-    }
-
-    public int[] getSequence() {
-        return mSequence;
     }
 
     public void setInterpolator(final Interpolator interpolator) {
@@ -262,7 +280,7 @@ public class NumberView extends View {
 
     private float[] empty() {
         // Used to indicate an empty number field
-        return new float[] {70, 100};
+        return new float[] { DEFAULT_WIDTH / 2, DEFAULT_HEIGHT / 2};
     }
 
     private void checkSequenceBounds() {
