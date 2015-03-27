@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package com.deange.numberview;
+package com.deange.numberview.sample;
 
 import android.app.Activity;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+
+import com.deange.numberview.NumberView;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -119,11 +121,6 @@ public class NumberActivity extends Activity implements View.OnClickListener {
 
     private void handleReset() {
         mTime = 0;
-        mTimer.cancel();
-        mTimer.purge();
-        mTimer = new Timer();
-        startTimer();
-
         mSecondOnesView.advanceImmediate(0);
         mSecondTensView.advanceImmediate(0);
         mMinuteOnesView.advanceImmediate(0);

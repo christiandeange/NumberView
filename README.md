@@ -37,7 +37,7 @@ NumberView no longer has a built-in auto-advancing timing system that automatica
 ---
 ###License
 ```
-Copyright 2013 Christian De Angelis
+Copyright 2015 Christian De Angelis
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -53,5 +53,5 @@ limitations under the License.
 ```
 
 [1]: https://play.google.com/store/apps/details?id=ch.bitspin.timely&hl=en
-[2]: https://github.com/cdeange/NumberView/blob/master/NumberView/src/main/java/com/deange/numberview/NumberView.java
+[2]: https://github.com/cdeange/NumberView/blob/master/NumberView/library/src/main/java/com/deange/numberview/NumberView.java
 [3]: http://developer.android.com/reference/java/util/Timer.html
