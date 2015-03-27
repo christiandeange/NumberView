@@ -42,8 +42,9 @@ public class NumberView extends View {
     private static final int[] DEFAULT_SEQUENCE = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     private static final int FRAME_COUNT = 24;
     private static final int EMPTY_POSITION = 10;
-    private static final float DEFAULT_WIDTH = 140;
-    private static final float DEFAULT_HEIGHT = 200;
+    private static final float DEFAULT_WIDTH = 140f;
+    private static final float DEFAULT_HEIGHT = 200f;
+    private static final float ASPECT_RATIO = DEFAULT_WIDTH / DEFAULT_HEIGHT;
 
     // NOTE: These fields are not static so that they may be scaled for each instance
     private float[][][] mPoints =
@@ -99,11 +100,12 @@ public class NumberView extends View {
     private int mNext;
     private int mCurrent;
     private int mFrame;
-    private boolean mFirstDraw;
+    private boolean mFirstLayout = true;
+    private boolean mFirstDraw = true;
     private boolean mDrawRequested;
 
-    private int mWidth;
-    private int mHeight;
+    private float mWidth;
+    private float mHeight;
 
     private int[] mTempSequence;
     private int[] mSequence;
@@ -143,24 +145,29 @@ public class NumberView extends View {
         mPaint.setStyle(Paint.Style.STROKE);
 
         // Set up size values
-        mFirstDraw = true;
         mScale = 1;
-        mWidth = (int) (DEFAULT_WIDTH * mScale);
-        mHeight = (int) (DEFAULT_HEIGHT * mScale);
+        mWidth = DEFAULT_WIDTH;
+        mHeight = DEFAULT_HEIGHT;
 
         mTempSequence = null;
         mSequence = DEFAULT_SEQUENCE;
 
-        // Calculate the right value for the default text size
-        int spSize = 0;
-        do {
-            spSize++;
-            final float pixel = TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_SP, spSize, getResources().getDisplayMetrics());
-            mPaint.setTextSizeInternal(pixel);
-        } while (mPaint.measureText(MEASURING_TEXT) < mWidth);
+        measureTextSize(mWidth);
+    }
 
-        setTextSize(mPaint.getTextSize());
+    private void measureTextSize(final float targetMaxWidth) {
+        // Calculate the right scale for the text size
+        int sp = 0;
+        float px = 0;
+        float validPx;
+        do {
+            sp++;
+            validPx = px;
+            px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, getResources().getDisplayMetrics());
+            mPaint.setTextSizeInternal(px);
+        } while (mPaint.measureText(MEASURING_TEXT) < targetMaxWidth);
+
+        setTextSize(validPx);
     }
 
     public void setSequence(final int[] sequence) {
@@ -256,6 +263,9 @@ public class NumberView extends View {
         // We can do this all at once by using the inverseFactor!
         final float inverseFactor = (scale / mScale);
 
+        final float w = mWidth;
+        final float h = mHeight;
+
         mWidth *= inverseFactor;
         mHeight *= inverseFactor;
 
@@ -266,10 +276,11 @@ public class NumberView extends View {
         mScale = scale;
 
         mFirstDraw = false;
-        postInvalidate();
+        requestLayout();
+        invalidate();
     }
 
-    private strictfp void applyScale(final float[][][] array, final float scale) {
+    private void applyScale(final float[][][] array, final float scale) {
         for (float[][] numberPoints : array) {
             for (float[] pointCoordinates : numberPoints) {
                 pointCoordinates[0] *= scale;
@@ -299,30 +310,41 @@ public class NumberView extends View {
     }
 
     @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-        // Need to realign our drawing bounds
-        // Otherwise, we get some strange bounds for the first frame
-        resolveLayoutParams();
+    protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
+        final int minWidth = getSuggestedMinimumWidth();
+        final int minHeight = getSuggestedMinimumHeight();
+        int width, height;
+
+        if (getLayoutParams().width == ViewGroup.LayoutParams.WRAP_CONTENT) {
+            width = (int) Math.max(minWidth, mWidth);
+        } else {
+            width = MeasureSpec.getSize(widthMeasureSpec);
+        }
+
+        if (getLayoutParams().height == ViewGroup.LayoutParams.WRAP_CONTENT) {
+            height = (int) Math.max(minHeight, mHeight);
+        } else {
+            height = MeasureSpec.getSize(heightMeasureSpec);
+        }
+
+        if (height * ASPECT_RATIO < width) {
+            height = (int) (width / ASPECT_RATIO);
+        }
+
+        setMeasuredDimension(width, height);
     }
 
-    private void resolveLayoutParams() {
+    @Override
+    protected void onLayout(
+            final boolean changed, final int l, final int t, final int r, final int b) {
+        super.onLayout(changed, l, t, r, b);
 
-        final ViewGroup.LayoutParams params = getLayoutParams();
-        if (params != null) {
-            boolean changeParams = false;
-            if (params.height == ViewGroup.LayoutParams.WRAP_CONTENT) {
-                params.height = mHeight;
-                changeParams = true;
-            }
-
-            if (params.width == ViewGroup.LayoutParams.WRAP_CONTENT) {
-                params.width = mWidth;
-                changeParams = true;
-            }
-
-            if (changeParams) {
-                setLayoutParams(params);
+        // Handles the case of an absolute dimension specified in the layout params
+        if (mFirstLayout) {
+            mFirstLayout = false;
+            final ViewGroup.LayoutParams params = getLayoutParams();
+            if (params != null && params.width > 0) {
+                measureTextSize(params.width);
             }
         }
     }
@@ -331,8 +353,6 @@ public class NumberView extends View {
     public void onDraw(final Canvas canvas) {
 
         super.onDraw(canvas);
-
-        resolveLayoutParams();
 
         // Reset the path
         mPath.reset();
@@ -348,8 +368,8 @@ public class NumberView extends View {
         final float[][] curr2 = mControlPoint2[thisNumberShown];
         final float[][] next2 = mControlPoint2[nextNumberShown];
 
-        final float translateX = (getWidth()  -  mWidth) / 2;
-        final float translateY = (getHeight() - mHeight) / 2;
+        final float translateX = ((float) getWidth()  -  mWidth) / 2f;
+        final float translateY = ((float) getHeight() - mHeight) / 2f;
 
         // A factor of the diference between current and next frame based on interpolation
         // If we ourselves did not specifically request drawing, then draw our previous state
@@ -475,13 +495,13 @@ public class NumberView extends View {
         @Override
         public void setTextSize(final float textSize) {
             super.setTextSize(textSize);
-            setScale(measureText(MEASURING_TEXT) / mWidth);
+            setScale(measureText(MEASURING_TEXT) / DEFAULT_WIDTH);
         }
 
         @Override
         public void set(final Paint src) {
             super.set(src);
-            setScale(measureText(MEASURING_TEXT) / mWidth);
+            setScale(measureText(MEASURING_TEXT) / DEFAULT_WIDTH);
         }
 
         protected void setTextSizeInternal(final float textSize) {
