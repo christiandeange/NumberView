@@ -2,8 +2,7 @@
 
 A simple number tweener.
 
-![First frame](design/frame1.png)&nbsp;&nbsp;&nbsp;&nbsp;![Transitioning to the next time](design/frame2.png)&nbsp;&nbsp;&nbsp;&nbsp;![A completed loop cycle](design/frame3.png)
-
+![gif](design/output.gif)
 
 ---
 ###What is it?
