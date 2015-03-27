@@ -13,45 +13,49 @@ NumberView is mean to be a take on [Timely][1]'s beatiful and tasteful number tw
 ###Usage
 Using [NumberView][2] in your project is simple. It is a standalone class, no resource files required. It can be added in programatically into your layouts, or be included as a tag in resource files:
 
-```
-<com.deange.numberview.NumberView
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content" />
-```
+    <com.deange.numberview.NumberView
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content" />
 
 ---
 ###Dependencies
 No dependencies. Works on all versions of Android, all the way back to API level 4!
 
 ---
-###Known Issues
+###Usage
 
-I've seen some lag on the Nexus 5 running on ART. Not sure if this is specific to my device, all Nexus 5s, or ART entirely.
+    repositories {
+        maven {
+            url "https://jitpack.io"
+        }
+    }
 
-NumberView no longer has a built-in auto-advancing timing system that automatically tweens to the next value, since it isn't a perfect system. It is recommended that you manually call `advance()` when necessary. The [Timer][3] class is perfect for this sort of fixed-rate behaviour. See the example activity class for a quick implementation.
+    dependencies {
+        compile 'com.github.cdeange:NumberView:1.0.0'
+    }
 
 ---
 ###Developed By
-- Christian De Angelis - <christiandeange@gmail.com>
+- Christian De Angelis - <de@ngelis.com>
 
 ---
 ###License
-```
-Copyright 2015 Christian De Angelis
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+    Copyright 2015 Christian De Angelis
 
-   http://www.apache.org/licenses/LICENSE-2.0
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-```
+       http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
 
 [1]: https://play.google.com/store/apps/details?id=ch.bitspin.timely&hl=en
-[2]: https://github.com/cdeange/NumberView/blob/master/NumberView/library/src/main/java/com/deange/numberview/NumberView.java
+[2]: https://github.com/cdeange/NumberView/blob/master/library/src/main/java/com/deange/numberview/NumberView.java
 [3]: http://developer.android.com/reference/java/util/Timer.html
