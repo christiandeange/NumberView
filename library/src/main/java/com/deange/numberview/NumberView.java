@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 
 public class NumberView extends View {
 
@@ -34,7 +35,7 @@ public class NumberView extends View {
     private float[][][] mPoints =
             {
                     {{14.5f, 100}, {70, 18}, {126, 100}, {70, 180}, {14.5f, 100}},
-                    {{47, 20.5f}, {74.5f, 20.5f}, {74.5f, 181}, {74.5f, 181}, {74.5f, 181}},
+                    {{15, 20.5f}, {42.5f, 20.5f}, {42.5f, 181}, {42.5f, 181}, {42.5f, 181}},
                     {{26, 60}, {114.5f, 61}, {78, 122}, {27, 177}, {117, 177}},
                     {{33.25f, 54}, {69.5f, 18}, {69.5f, 96}, {70, 180}, {26.5f, 143}},
                     {{125, 146}, {13, 146}, {99, 25}, {99, 146}, {99, 179}},
@@ -50,7 +51,7 @@ public class NumberView extends View {
     private float[][][] mControlPoint1 =
             {
                     {{14.5f, 60}, {103, 18}, {126, 140}, {37, 180}},
-                    {{47, 20.5f}, {74.5f, 20.5f}, {74.5f, 181}, {74.5f, 181}},
+                    {{15, 20.5f}, {42.5f, 20.5f}, {42.5f, 181}, {42.5f, 181}},
                     {{29, 2}, {114.5f, 78}, {64, 138}, {27, 177}},
                     {{33, 27}, {126, 18}, {128, 96}, {24, 180}},
                     {{125, 146}, {13, 146}, {99, 25}, {99, 146}},
@@ -66,7 +67,7 @@ public class NumberView extends View {
     private float[][][] mControlPoint2 =
             {
                     {{37, 18}, {126, 60}, {103, 180}, {14.5f, 140}},
-                    {{74.5f, 20.5f}, {74.5f, 181}, {74.5f, 181}, {74.5f, 181}},
+                    {{12.5f, 20.5f}, {42.5f, 181}, {42.5f, 181}, {42.5f, 181}},
                     {{113, 4}, {100, 98}, {44, 155}, {117, 177}},
                     {{56, 18}, {116, 96}, {120, 180}, {26, 150}},
                     {{13, 146}, {99, 25}, {99, 146}, {99, 179}},
@@ -76,6 +77,11 @@ public class NumberView extends View {
                     {{14, 19}, {124, 96}, {6, 179}, {124, 96}},
                     {{24, 134}, {118, -8}, {99, 121}, {60, 180}},
                     {empty(), empty(), empty(), empty(), empty()},
+            };
+
+    private float[] mNumberWidth =
+            {
+                    140f, 70f, 140f, 140f, 140f, 140f, 140f, 140f, 140f, 140f, 1f,
             };
 
     private final NumberViewPaint mPaint = new NumberViewPaint();
@@ -158,6 +164,9 @@ public class NumberView extends View {
 
         if (sequence == null) {
             throw new IllegalArgumentException("Sequence cannot be null");
+
+        } else if (sequence.length == 0) {
+            throw new IllegalArgumentException("Sequence cannot be empty");
         }
 
         if (isAnimating()) {
@@ -172,11 +181,7 @@ public class NumberView extends View {
     }
 
     public void setInterpolator(final Interpolator interpolator) {
-        if (interpolator == null) {
-            throw new IllegalArgumentException("Interpolator cannot be null");
-        }
-
-        mInterpolator = interpolator;
+        mInterpolator = (interpolator == null) ? new LinearInterpolator() : interpolator;
     }
 
     public void setPaint(final Paint paint) {
@@ -247,15 +252,13 @@ public class NumberView extends View {
         // We can do this all at once by using the inverseFactor!
         final float inverseFactor = (scale / mScale);
 
-        final float w = mWidth;
-        final float h = mHeight;
-
         mWidth *= inverseFactor;
         mHeight *= inverseFactor;
 
         applyScale(mPoints, inverseFactor);
         applyScale(mControlPoint1, inverseFactor);
         applyScale(mControlPoint2, inverseFactor);
+        applyScale(mNumberWidth, inverseFactor);
 
         mScale = scale;
 
@@ -273,9 +276,15 @@ public class NumberView extends View {
         }
     }
 
+    private void applyScale(final float[] array, final float scale) {
+        for (int i = 0; i < array.length; i++) {
+            array[i] *= scale;
+        }
+    }
+
     private float[] empty() {
         // Used to indicate an empty number field
-        return new float[] { DEFAULT_WIDTH / 2, DEFAULT_HEIGHT / 2};
+        return new float[] { DEFAULT_WIDTH / 8, DEFAULT_HEIGHT / 2};
     }
 
     private void checkSequenceBounds() {
@@ -286,6 +295,14 @@ public class NumberView extends View {
 
     private boolean isAnimating() {
         return mFrame != 0;
+    }
+
+    private float getAnimationFraction() {
+        return (float) mFrame / (float) FRAME_COUNT;
+    }
+
+    private float lerp(float v0, float v1, float t) {
+        return ((1 - t) * v0) + (t * v1);
     }
 
     private void drawNextNumber() {
@@ -352,27 +369,35 @@ public class NumberView extends View {
         final float[][] curr2 = mControlPoint2[thisNumberShown];
         final float[][] next2 = mControlPoint2[nextNumberShown];
 
-        final float translateX = ((float) getWidth()  -  mWidth) / 2f;
-        final float translateY = ((float) getHeight() - mHeight) / 2f;
-
         // A factor of the diference between current and next frame based on interpolation
         // If we ourselves did not specifically request drawing, then draw our previous state
-        final float factor = mInterpolator.getInterpolation((float) mFrame / (float) FRAME_COUNT);
+        final float factor = mInterpolator.getInterpolation(getAnimationFraction());
+
+        final float thisWidth = mNumberWidth[thisNumberShown];
+        final float nextWidth = mNumberWidth[nextNumberShown];
+        final float interpolatedWidth = lerp(thisWidth, nextWidth, factor);
+        if (thisWidth != nextWidth) {
+            mWidth = interpolatedWidth;
+            requestLayout();
+        }
+
+        final float translateX = ((float) getMeasuredWidth()  -  mWidth) / 2f;
+        final float translateY = ((float) getMeasuredHeight() - mHeight) / 2f;
 
         // Draw the first point
         mPath.moveTo(
-                current[0][0] + ((next[0][0] - current[0][0]) * factor + translateX),
-                current[0][1] + ((next[0][1] - current[0][1]) * factor + translateY));
+                lerp(current[0][0], next[0][0], factor) + translateX,
+                lerp(current[0][1], next[0][1], factor) + translateY);
 
         // Connect the rest of the points as a bezier curve
         for (int i = 0; i < 4; i++) {
             mPath.cubicTo(
-                    curr1[i][0] + ((next1[i][0] - curr1[i][0]) * factor + translateX),         // Control point 1
-                    curr1[i][1] + ((next1[i][1] - curr1[i][1]) * factor + translateY),
-                    curr2[i][0] + ((next2[i][0] - curr2[i][0]) * factor + translateX),         // Control point 2
-                    curr2[i][1] + ((next2[i][1] - curr2[i][1]) * factor + translateY),
-                    current[i + 1][0] + ((next[i + 1][0] - current[i + 1][0]) * factor + translateX),    // Point
-                    current[i + 1][1] + ((next[i + 1][1] - current[i + 1][1]) * factor + translateY));
+                    lerp(curr1[i][0], next1[i][0], factor) + translateX,
+                    lerp(curr1[i][1], next1[i][1], factor) + translateY,
+                    lerp(curr2[i][0], next2[i][0], factor) + translateX,
+                    lerp(curr2[i][1], next2[i][1], factor) + translateY,
+                    lerp(current[i + 1][0], next[i + 1][0], factor) + translateX,
+                    lerp(current[i + 1][1], next[i + 1][1], factor) + translateY);
         }
 
         // Draw the path
