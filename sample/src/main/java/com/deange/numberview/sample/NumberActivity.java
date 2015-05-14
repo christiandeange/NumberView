@@ -3,6 +3,8 @@ package com.deange.numberview.sample;
 import android.app.Activity;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 
@@ -16,6 +18,7 @@ public class NumberActivity extends Activity implements View.OnClickListener {
     private static final String KEY_TIME = "time";
 
     private Timer mTimer = new Timer();
+    private Handler mMainHandler = new Handler(Looper.getMainLooper());
 
     private NumberView mMinuteTensView;
     private NumberView mMinuteOnesView;
@@ -32,7 +35,7 @@ public class NumberActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_number);
 
         mResetButton = (Button) findViewById(R.id.button_reset);
         mStartStopButton = (Button) findViewById(R.id.button_start_stop);
@@ -44,9 +47,6 @@ public class NumberActivity extends Activity implements View.OnClickListener {
         mSecondOnesView = (NumberView) findViewById(R.id.number_second_ones_position);
         mMinuteTensView = (NumberView) findViewById(R.id.number_minute_tens_position);
         mMinuteOnesView = (NumberView) findViewById(R.id.number_minute_ones_position);
-
-        mSecondTensView.setSequence(new int[]{ 0, 1, 2, 3, 4, 5 });
-        mMinuteTensView.setSequence(new int[]{ 0, 1, 2, 3, 4, 5 });
 
         final Paint thickPaint = mMinuteTensView.getPaint();
         thickPaint.setStrokeWidth(5f);
@@ -129,7 +129,12 @@ public class NumberActivity extends Activity implements View.OnClickListener {
     private class UpdateTask extends TimerTask {
         @Override
         public void run() {
-            updateUi();
+            mMainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    updateUi();
+                }
+            });
         }
     }
 }

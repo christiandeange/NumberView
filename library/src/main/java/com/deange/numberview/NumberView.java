@@ -24,9 +24,10 @@ public class NumberView extends View {
     // "8" is used since it constitutes the widest number drawn
     private static final String MEASURING_TEXT = "8";
 
-    private static final int[] DEFAULT_SEQUENCE = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     private static final int FRAME_COUNT = 24;
-    private static final int EMPTY_POSITION = 10;
+    /* package */ static final int HIDE_NUMBER = 10;
+    /* package */ static final int HIDE_INDEX = 10;
+
     private static final float DEFAULT_WIDTH = 140f;
     private static final float DEFAULT_HEIGHT = 200f;
     private static final float ASPECT_RATIO = DEFAULT_WIDTH / DEFAULT_HEIGHT;
@@ -87,18 +88,14 @@ public class NumberView extends View {
     private final NumberViewPaint mPaint = new NumberViewPaint();
     private final Path mPath = new Path();
 
-    private int mNext;
-    private int mCurrent;
+    private int mNext = HIDE_NUMBER;
+    private int mCurrent = HIDE_NUMBER;
     private int mFrame;
     private boolean mFirstLayout = true;
-    private boolean mFirstDraw = true;
     private boolean mDrawRequested;
 
     private float mWidth;
     private float mHeight;
-
-    private int[] mTempSequence;
-    private int[] mSequence;
 
     private float mScale;
     private Interpolator mInterpolator;
@@ -139,9 +136,6 @@ public class NumberView extends View {
         mWidth = DEFAULT_WIDTH;
         mHeight = DEFAULT_HEIGHT;
 
-        mTempSequence = null;
-        mSequence = DEFAULT_SEQUENCE;
-
         measureTextSize(mWidth);
     }
 
@@ -158,26 +152,6 @@ public class NumberView extends View {
         } while (mPaint.measureText(MEASURING_TEXT) < targetMaxWidth);
 
         setTextSize(validPx);
-    }
-
-    public void setSequence(final int[] sequence) {
-
-        if (sequence == null) {
-            throw new IllegalArgumentException("Sequence cannot be null");
-
-        } else if (sequence.length == 0) {
-            throw new IllegalArgumentException("Sequence cannot be empty");
-        }
-
-        if (isAnimating()) {
-            mTempSequence = new int[sequence.length];
-            System.arraycopy(sequence, 0, mTempSequence, 0, sequence.length);
-
-        } else {
-            mSequence = new int[sequence.length];
-            System.arraycopy(sequence, 0, mSequence, 0, sequence.length);
-            checkSequenceBounds();
-        }
     }
 
     public void setInterpolator(final Interpolator interpolator) {
@@ -201,41 +175,49 @@ public class NumberView extends View {
         mPaint.setTextSize(textSize);
     }
 
-    public int getCurrentNumber() {
-        return mSequence[mCurrent];
+    public float getTextSize() {
+        return getPaint().getTextSize();
     }
 
-    public void setNextNumberIndex(final int next) {
-        mNext = next;
-        checkSequenceBounds();
+    public int getCurrentNumber() {
+        return mNext;
+    }
+
+    public void hide() {
+        advance(HIDE_NUMBER);
+    }
+
+    public void hideImmediate() {
+        advanceImmediate(HIDE_NUMBER);
     }
 
     public void advance() {
+        // Convenience to set the next number and advance to it in one call
         advance(mNext + 1);
     }
 
-    public void advance(final int nextIndex) {
-        // Convenience to set the next index and advance to it in one call
-        setNextNumberIndex(nextIndex);
+    public void advance(final int next) {
+        mNext = next;
         checkSequenceBounds();
 
         if (!isAnimating()) {
-            drawNextNumber();
+            mDrawRequested = true;
         }
+
+        postInvalidate();
     }
 
     public void advanceImmediate() {
+        // Convenience to set the next number and advance to it immediately in one call
         advanceImmediate(mNext + 1);
     }
 
-    public void advanceImmediate(final int nextIndex) {
-        // Convenience to set the next index and advance to it immediately in one call
-        setNextNumberIndex(nextIndex);
+    public void advanceImmediate(final int next) {
+        mNext = next;
+        checkSequenceBounds();
         mCurrent = mNext;
 
-        if (!isAnimating()) {
-            postInvalidate();
-        }
+        postInvalidate();
     }
 
     private void setScale(float scale) {
@@ -262,7 +244,6 @@ public class NumberView extends View {
 
         mScale = scale;
 
-        mFirstDraw = false;
         requestLayout();
         invalidate();
     }
@@ -288,9 +269,11 @@ public class NumberView extends View {
     }
 
     private void checkSequenceBounds() {
-        // Wrap around to the start of the sequence. Ensures positive value
-        final int mod = mSequence.length;
-        mNext = (mNext % mod + mod) % mod;
+        // Ensures single-digit values only
+        // This also preserves -1 as mNext (for empty digit)
+        if (mNext != HIDE_NUMBER) {
+            mNext = (mNext + 10) % 10;
+        }
     }
 
     private boolean isAnimating() {
@@ -301,13 +284,14 @@ public class NumberView extends View {
         return (float) mFrame / (float) FRAME_COUNT;
     }
 
-    private float lerp(float v0, float v1, float t) {
-        return ((1 - t) * v0) + (t * v1);
+    private int getIndex(final int number) {
+        return (number == HIDE_NUMBER) ? HIDE_INDEX : number;
     }
 
-    private void drawNextNumber() {
-        mDrawRequested = true;
-        postInvalidate();
+    private float lerp(float v0, float v1, float t) {
+        return (t == 1)
+                ? ((1 - t) * v0) + (t * v1)
+                : (v0 + t * (v1 - v0));
     }
 
     @Override
@@ -317,7 +301,13 @@ public class NumberView extends View {
         int width, height;
 
         if (getLayoutParams().width == ViewGroup.LayoutParams.WRAP_CONTENT) {
-            width = (int) Math.max(minWidth, mWidth);
+            if (isAnimating()) {
+                width = (int) Math.max(minWidth, mWidth);
+
+            } else {
+                mWidth = Math.max(1, mNumberWidth[getIndex(mCurrent)]);
+                width = (int) Math.max(minWidth, mWidth);
+            }
         } else {
             width = MeasureSpec.getSize(widthMeasureSpec);
         }
@@ -359,8 +349,8 @@ public class NumberView extends View {
         mPath.reset();
 
         checkSequenceBounds();
-        final int thisNumberShown = mFirstDraw ? EMPTY_POSITION : mSequence[mCurrent];
-        final int nextNumberShown = mSequence[mNext];
+        final int thisNumberShown = getIndex(mCurrent);
+        final int nextNumberShown = getIndex(mNext);
 
         final float[][] current = mPoints[thisNumberShown];
         final float[][] next = mPoints[nextNumberShown];
@@ -376,8 +366,8 @@ public class NumberView extends View {
         final float thisWidth = mNumberWidth[thisNumberShown];
         final float nextWidth = mNumberWidth[nextNumberShown];
         final float interpolatedWidth = lerp(thisWidth, nextWidth, factor);
-        if (thisWidth != nextWidth) {
-            mWidth = interpolatedWidth;
+        if (thisWidth != nextWidth || mWidth != interpolatedWidth) {
+            mWidth = Math.max(interpolatedWidth, 1f);
             requestLayout();
         }
 
@@ -420,21 +410,15 @@ public class NumberView extends View {
         if (mFrame > FRAME_COUNT) {
 
             mFrame = 0;
-            mFirstDraw = false;
             mCurrent = mNext;
             mNext++;
-
-            // Update the sequence when this current number tween animation ends
-            if (mTempSequence != null) {
-                mSequence = mTempSequence;
-                mTempSequence = null;
-            }
 
             checkSequenceBounds();
 
         } else {
             // Callback for the next frame.
-            drawNextNumber();
+            mDrawRequested = true;
+            postInvalidate();
         }
     }
 
@@ -445,7 +429,6 @@ public class NumberView extends View {
         // If we are animating while saving state, skip to the end by saving mCurrent as mNext
         ss.next = mNext;
         ss.current = isAnimating() ? mNext : mCurrent;
-        ss.firstDraw = mFirstDraw;
 
         return ss;
     }
@@ -462,13 +445,11 @@ public class NumberView extends View {
 
         mNext = ss.next;
         mCurrent = ss.current;
-        mFirstDraw = ss.firstDraw;
     }
 
     private static class SavedState extends BaseSavedState {
         public int next;
         public int current;
-        public boolean firstDraw;
 
         private SavedState(Parcelable superState) {
             super(superState);
@@ -478,7 +459,6 @@ public class NumberView extends View {
             super(in);
             next = in.readInt();
             current = in.readInt();
-            firstDraw = in.readInt() != 0;
         }
 
         @Override
@@ -486,7 +466,6 @@ public class NumberView extends View {
             super.writeToParcel(out, flags);
             out.writeInt(next);
             out.writeInt(current);
-            out.writeInt(firstDraw ? 1 : 0);
         }
 
         public static final Parcelable.Creator<SavedState> CREATOR =
