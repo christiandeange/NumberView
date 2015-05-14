@@ -7,7 +7,6 @@ import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 
-import com.deange.numberview.NumberView;
 import com.deange.numberview.NumberViewGroup;
 
 import java.util.Timer;

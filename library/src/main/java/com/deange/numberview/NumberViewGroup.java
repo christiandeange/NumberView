@@ -13,6 +13,8 @@ public class NumberViewGroup extends LinearLayout {
     private int mMinShown = -1;
     private int mNumber = NumberView.HIDE_NUMBER;
 
+    private PaintProvider mPaintProvider;
+
     public NumberViewGroup(final Context context) {
         super(context);
         init();
@@ -42,6 +44,10 @@ public class NumberViewGroup extends LinearLayout {
 
     protected NumberView addNewChild() {
         final NumberView child = new NumberView(getContext());
+        if (mPaintProvider != null) {
+            mPaintProvider.mutate(child.getPaint(), getChildCount());
+        }
+
         child.hideImmediate();
         addView(child, 0);
 
@@ -157,5 +163,9 @@ public class NumberViewGroup extends LinearLayout {
         while (getChildCount() < mMinShown) {
             addNewChild();
         }
+    }
+
+    public void setPaintProvider(final PaintProvider paintProvider) {
+        mPaintProvider = paintProvider;
     }
 }
