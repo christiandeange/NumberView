@@ -25,7 +25,7 @@ public class NumberView extends View {
     private static final String MEASURING_TEXT = "8";
 
     private static final int FRAME_COUNT = 24;
-    /* package */ static final int HIDE_NUMBER = 10;
+    /* package */ static final int HIDE_NUMBER = -1;
     /* package */ static final int HIDE_INDEX = 10;
 
     private static final float DEFAULT_WIDTH = 140f;

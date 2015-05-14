@@ -91,7 +91,6 @@ public class NumberActivity extends Activity implements View.OnClickListener {
     private void handleStartStop() {
         if (mStarted) {
             mTimer.cancel();
-            mTimer.purge();
             mStartStopButton.setText(R.string.button_start);
 
         } else {
