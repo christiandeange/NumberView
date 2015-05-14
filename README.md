@@ -10,18 +10,40 @@ NumberView is mean to be a take on [Timely][1]'s beatiful and tasteful number tw
 
 ---
 ###Usage
-Using [NumberView][2] in your project is simple. It is a standalone class, no resource files required. It can be added in programatically into your layouts, or be included as a tag in resource files:
+Using [NumberView][2] to show a single digit in your project is simple. You can drop it into your XML files as a regular custom view:
 
     <com.deange.numberview.NumberView
             android:layout_height="wrap_content"
             android:layout_width="wrap_content" />
 
----
-###Dependencies
-No dependencies. Works on all versions of Android, all the way back to API level 4!
+
+    final NumberView view = findViewById(...);
+    view.advance(1);
+    postDelayed(() -> { view.advance(2) }, 1000);
+    postDelayed(() -> { view.advance(3) }, 2000);
+    ...
+
+However, typically you'll want to show more than one digit at a time. For that you can use [NumberViewGroup][3], which automatically takes care of adding new digits as you need them.
+
+    <com.deange.numberview.NumberViewGroup
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content" />
+
+
+    final NumberViewGroup view = findViewById(...);
+    view.advance(1);
+    postDelayed(() -> { view.advance(20) }, 1000);
+    postDelayed(() -> { view.advance(300) }, 2000);
+    ...
+
+You can always view the sample application code for more usage demos.
 
 ---
-###Usage
+###Dependencies
+No dependencies. Works on all versions of Android, all the way back to API level 1!
+
+---
+###Download
 
     repositories {
         maven {
@@ -55,6 +77,6 @@ No dependencies. Works on all versions of Android, all the way back to API level
     limitations under the License.
 
 
-[1]: https://play.google.com/store/apps/details?id=ch.bitspin.timely&hl=en
+[1]: https://play.google.com/store/apps/details?id=ch.bitspin.timely
 [2]: https://github.com/cdeange/NumberView/blob/master/library/src/main/java/com/deange/numberview/NumberView.java
-[3]: http://developer.android.com/reference/java/util/Timer.html
+[3]: https://github.com/cdeange/NumberView/blob/master/library/src/main/java/com/deange/numberview/NumberViewGroup.java
