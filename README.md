@@ -52,7 +52,7 @@ No dependencies. Works on all versions of Android, all the way back to API level
     }
 
     dependencies {
-        compile 'com.github.cdeange:NumberView:1.0.0'
+        compile 'com.github.cdeange:NumberView:1.1.0'
     }
 
 ---
