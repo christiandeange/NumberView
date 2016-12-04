@@ -6,11 +6,11 @@ A simple number tweener.
 
 ---
 ###What is it?
-NumberView is mean to be a take on [Timely][1]'s beautiful and tasteful number tweening animations. Despite looking like it draws actual numbers in it, the numbers drawn are represented as Bèzier curve paths, meticulously calculated with control points and anchors.
+NumberView is mean to be a take on [Timely][]'s beautiful and tasteful number tweening animations. Despite looking like it draws actual numbers in it, the numbers drawn are represented as Bèzier curve paths, meticulously calculated with control points and anchors.
 
 ---
 ###Usage
-Using [NumberView][2] to show a single digit in your project is simple. You can drop it into your XML files as a regular custom view:
+Using [NumberView][] to show a single digit in your project is simple. You can drop it into your XML files as a regular custom view:
 
 Layout file:
 ```xml
@@ -23,11 +23,11 @@ And in your Java file:
 ```java
 final NumberView view = findViewById(...);
 view.advance(1);
-postDelayed(() -> { view.advance(2) }, 1000);
-postDelayed(() -> { view.advance() }, 2000); // Displays "3"
+postDelayed(() -> view.advance(2), 1000);
+postDelayed(() -> view.advance(), 2000); // Displays "3"
 ```
 
-However, typically you'll want to show more than one digit at a time. For that you can use [NumberViewGroup][3], which automatically takes care of adding new digits as you need them.
+However, typically you'll want to show more than one digit at a time. For that you can use [NumberViewGroup][], which automatically takes care of adding new digits as you need them.
 
 Layout file:
 ```xml
@@ -41,15 +41,15 @@ And in your Java file:
 ```java
 final NumberViewGroup view = findViewById(...);
 view.advance(1);
-postDelayed(() -> { view.advance(20) }, 1000);
-postDelayed(() -> { view.advance() }, 2000); // Displays "21"
+postDelayed(() -> view.advance(20), 1000);
+postDelayed(() -> view.advance(), 2000); // Displays "21"
 ```
 
 You can always view the sample application code for more usage demos.
 
 ---
 ###Dependencies
-No dependencies. Works on all versions of Android, all the way back to API level 1!
+No dependencies. Works all the way back to API level 14.
 
 ---
 ###Download
@@ -74,7 +74,7 @@ dependencies {
 ###License
 
 ```
-Copyright 2015 Christian De Angelis
+Copyright 2016 Christian De Angelis
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -90,6 +90,6 @@ limitations under the License.
 ```
 
 
-[1]: https://play.google.com/store/apps/details?id=ch.bitspin.timely
-[2]: https://github.com/cdeange/NumberView/blob/master/library/src/main/java/com/deange/numberview/NumberView.java
-[3]: https://github.com/cdeange/NumberView/blob/master/library/src/main/java/com/deange/numberview/NumberViewGroup.java
+[Timely]: https://play.google.com/store/apps/details?id=ch.bitspin.timely
+[NumberView]: https://github.com/cdeange/NumberView/blob/master/library/src/main/java/com/deange/numberview/NumberView.java
+[NumberViewGroup]: https://github.com/cdeange/NumberView/blob/master/library/src/main/java/com/deange/numberview/NumberViewGroup.java
