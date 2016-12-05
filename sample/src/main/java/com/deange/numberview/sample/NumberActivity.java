@@ -48,10 +48,8 @@ public class NumberActivity extends Activity implements View.OnClickListener {
         mMinuteTensView = (NumberView) findViewById(R.id.number_minute_tens_position);
         mMinuteOnesView = (NumberView) findViewById(R.id.number_minute_ones_position);
 
-        final Paint thickPaint = mMinuteTensView.getPaint();
-        thickPaint.setStrokeWidth(5f);
-        mMinuteTensView.setPaint(thickPaint);
-        mMinuteOnesView.setPaint(thickPaint);
+        mMinuteTensView.getPaint().setStrokeWidth(5f);
+        mMinuteOnesView.getPaint().setStrokeWidth(5f);
 
         mTime = savedInstanceState == null ? 0 : savedInstanceState.getInt(KEY_TIME);
     }

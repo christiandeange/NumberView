@@ -14,7 +14,7 @@ public class MainActivity extends ListActivity {
             "NumberViewGroup",
     };
 
-    private static final Class[] ACTIVITES = new Class[]{
+    private static final Class[] ACTIVITIES = new Class[]{
             NumberActivity.class,
             NumberGroupActivity.class,
     };
@@ -27,7 +27,7 @@ public class MainActivity extends ListActivity {
 
     @Override
     protected void onListItemClick(final ListView l, final View v, final int position, final long id) {
-        startActivity(new Intent(this, ACTIVITES[position]));
+        startActivity(new Intent(this, ACTIVITIES[position]));
     }
 
     private class TypesAdapter extends ArrayAdapter<String> {

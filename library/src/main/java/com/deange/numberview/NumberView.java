@@ -15,6 +15,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Property;
+import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,21 +23,22 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 
+import com.deange.numberview.digits.Digit;
+import com.deange.numberview.digits.StandardDigits;
+
+import static com.deange.numberview.digits.StandardDigits.HIDE_NUMBER;
+
 public class NumberView extends View {
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     public static final long DEFAULT_ANIMATION_DURATION = 500L;
+    public static final float DEFAULT_WIDTH = 140f;
+    public static final float DEFAULT_HEIGHT = 200f;
+    public static final float ASPECT_RATIO = DEFAULT_WIDTH / DEFAULT_HEIGHT;
 
     // "8" is used since it constitutes the widest number drawn
     private static final String MEASURING_TEXT = "8";
-
-    /* package */ static final int HIDE_NUMBER = -1;
-    /* package */ static final int HIDE_INDEX = 10;
-
-    private static final float DEFAULT_WIDTH = 140f;
-    private static final float DEFAULT_HEIGHT = 200f;
-    private static final float ASPECT_RATIO = DEFAULT_WIDTH / DEFAULT_HEIGHT;
 
     private static final Property<NumberView, Float> FACTOR =
             new Property<NumberView, Float>(Float.class, "factor") {
@@ -52,59 +54,7 @@ public class NumberView extends View {
                 }
             };
 
-    // NOTE: These fields are not static so that they may be scaled for each instance
-    private float[][][] mPoints =
-            {
-                    { { 14.5f, 100 }, { 70, 18 }, { 126, 100 }, { 70, 180 }, { 14.5f, 100 } },
-                    { { 15, 20.5f }, { 42.5f, 20.5f }, { 42.5f, 181 }, { 42.5f, 181 }, { 42.5f, 181 } },
-                    { { 26, 60 }, { 114.5f, 61 }, { 78, 122 }, { 27, 177 }, { 117, 177 } },
-                    { { 33.25f, 54 }, { 69.5f, 18 }, { 69.5f, 96 }, { 70, 180 }, { 26.5f, 143 } },
-                    { { 125, 146 }, { 13, 146 }, { 99, 25 }, { 99, 146 }, { 99, 179 } },
-                    { { 116, 20 }, { 61, 20 }, { 42, 78 }, { 115, 129 }, { 15, 154 } },
-                    { { 80, 20 }, { 80, 20 }, { 16, 126 }, { 123, 126 }, { 23, 100 } },
-                    { { 17, 21 }, { 128, 21 }, { 90.67f, 73.34f }, { 53.34f, 126.67f }, { 16, 181 } },
-                    { { 71, 96 }, { 71, 19 }, { 71, 96 }, { 71, 179 }, { 71, 96 } },
-                    { { 117, 100 }, { 17, 74 }, { 124, 74 }, { 60, 180 }, { 60, 180 } },
-                    { empty(), empty(), empty(), empty(), empty() },
-            };
-
-    // The set of the "first" control points of each segment
-    private float[][][] mControlPoint1 =
-            {
-                    { { 14.5f, 60 }, { 103, 18 }, { 126, 140 }, { 37, 180 } },
-                    { { 15, 20.5f }, { 42.5f, 20.5f }, { 42.5f, 181 }, { 42.5f, 181 } },
-                    { { 29, 2 }, { 114.5f, 78 }, { 64, 138 }, { 27, 177 } },
-                    { { 33, 27 }, { 126, 18 }, { 128, 96 }, { 24, 180 } },
-                    { { 125, 146 }, { 13, 146 }, { 99, 25 }, { 99, 146 } },
-                    { { 61, 20 }, { 42, 78 }, { 67, 66 }, { 110, 183 } },
-                    { { 80, 20 }, { 41, 79 }, { 22, 208 }, { 116, 66 } },
-                    { { 17, 21 }, { 128, 21 }, { 90.67f, 73.34f }, { 53.34f, 126.67f } },
-                    { { 14, 95 }, { 124, 19 }, { 14, 96 }, { 124, 179 } },
-                    { { 94, 136 }, { 12, 8 }, { 122, 108 }, { 60, 180 } },
-                    { empty(), empty(), empty(), empty(), empty() },
-            };
-
-    // The set of the "second" control points of each segment
-    private float[][][] mControlPoint2 =
-            {
-                    { { 37, 18 }, { 126, 60 }, { 103, 180 }, { 14.5f, 140 } },
-                    { { 12.5f, 20.5f }, { 42.5f, 181 }, { 42.5f, 181 }, { 42.5f, 181 } },
-                    { { 113, 4 }, { 100, 98 }, { 44, 155 }, { 117, 177 } },
-                    { { 56, 18 }, { 116, 96 }, { 120, 180 }, { 26, 150 } },
-                    { { 13, 146 }, { 99, 25 }, { 99, 146 }, { 99, 179 } },
-                    { { 61, 20 }, { 42, 78 }, { 115, 85 }, { 38, 198 } },
-                    { { 80, 20 }, { 18, 92 }, { 128, 192 }, { 46, 64 } },
-                    { { 128, 21 }, { 90.67f, 73.34f }, { 53.34f, 126.67f }, { 16, 181 } },
-                    { { 14, 19 }, { 124, 96 }, { 6, 179 }, { 124, 96 } },
-                    { { 24, 134 }, { 118, -8 }, { 99, 121 }, { 60, 180 } },
-                    { empty(), empty(), empty(), empty(), empty() },
-            };
-
-    private float[] mNumberWidth =
-            {
-                    140f, 70f, 140f, 140f, 140f, 140f, 140f, 140f, 140f, 140f, 1f,
-            };
-
+    private final SparseArray<Digit> mDigitCache = new SparseArray<>();
     private final NumberViewPaint mPaint = new NumberViewPaint();
     private final Path mPath = new Path();
 
@@ -263,42 +213,14 @@ public class NumberView extends View {
 
         if (mScale == scale) return;
 
-        // We must reset the values back to normal and then multiply them by the new scale
-        // We can do this all at once by using the inverseFactor!
         final float inverseFactor = (scale / mScale);
-
         mWidth *= inverseFactor;
         mHeight *= inverseFactor;
-
-        applyScale(mPoints, inverseFactor);
-        applyScale(mControlPoint1, inverseFactor);
-        applyScale(mControlPoint2, inverseFactor);
-        applyScale(mNumberWidth, inverseFactor);
 
         mScale = scale;
 
         requestLayout();
         invalidate();
-    }
-
-    private void applyScale(final float[][][] array, final float scale) {
-        for (float[][] numberPoints : array) {
-            for (float[] pointCoordinates : numberPoints) {
-                pointCoordinates[0] *= scale;
-                pointCoordinates[1] *= scale;
-            }
-        }
-    }
-
-    private void applyScale(final float[] array, final float scale) {
-        for (int i = 0; i < array.length; i++) {
-            array[i] *= scale;
-        }
-    }
-
-    private float[] empty() {
-        // Used to indicate an empty number field
-        return new float[]{ DEFAULT_WIDTH / 8, DEFAULT_HEIGHT / 2 };
     }
 
     private void checkSequenceBounds() {
@@ -309,16 +231,27 @@ public class NumberView extends View {
         }
     }
 
+    private Digit getDigit(final int number) {
+        Digit digit = mDigitCache.get(number);
+        if (digit == null) {
+            digit = StandardDigits.forNumber(number);
+            mDigitCache.put(number, digit);
+        }
+        return digit;
+    }
+
     private boolean isAnimating() {
         return mAnimator.isRunning();
     }
 
-    private int getIndex(final int number) {
-        return (number == HIDE_NUMBER) ? HIDE_INDEX : number;
-    }
-
     private float lerp(float v0, float v1, float t) {
         return (1 - t) * v0 + t * v1;
+    }
+
+    private boolean fequals(final float f0, final float f1) {
+        final float ulp0 = Math.ulp(f0);
+        final float ulp1 = Math.ulp(f1);
+        return Math.abs(f0 - f1) <= Math.max(ulp0, ulp1);
     }
 
     @Override
@@ -328,13 +261,10 @@ public class NumberView extends View {
         int width, height;
 
         if (getLayoutParams().width == ViewGroup.LayoutParams.WRAP_CONTENT) {
-            if (isAnimating()) {
-                width = (int) Math.max(minWidth, mWidth);
-
-            } else {
-                mWidth = Math.max(1, mNumberWidth[getIndex(mCurrent)]);
-                width = (int) Math.max(minWidth, mWidth);
+            if (!isAnimating()) {
+                mWidth = mScale * getDigit(mCurrent).getWidth();
             }
+            width = (int) Math.max(minWidth, mWidth);
         } else {
             width = MeasureSpec.getSize(widthMeasureSpec);
         }
@@ -353,8 +283,7 @@ public class NumberView extends View {
     }
 
     @Override
-    protected void onLayout(
-            final boolean changed, final int l, final int t, final int r, final int b) {
+    protected void onLayout(final boolean changed, final int l, final int t, final int r, final int b) {
         super.onLayout(changed, l, t, r, b);
 
         // Handles the case of an absolute dimension specified in the layout params
@@ -372,24 +301,24 @@ public class NumberView extends View {
         super.onDraw(canvas);
 
         checkSequenceBounds();
-        final int thisNumber = getIndex(mCurrent);
-        final int nextNumber = getIndex(mNext);
+        final Digit thisNumber = getDigit(mCurrent);
+        final Digit nextNumber = getDigit(mNext);
 
-        final float[][] current = mPoints[thisNumber];
-        final float[][] next = mPoints[nextNumber];
-        final float[][] curr1 = mControlPoint1[thisNumber];
-        final float[][] next1 = mControlPoint1[nextNumber];
-        final float[][] curr2 = mControlPoint2[thisNumber];
-        final float[][] next2 = mControlPoint2[nextNumber];
+        final float[][] current = thisNumber.getPoints();
+        final float[][] next = nextNumber.getPoints();
+        final float[][] curr1 = thisNumber.getControlPoints1();
+        final float[][] next1 = nextNumber.getControlPoints1();
+        final float[][] curr2 = thisNumber.getControlPoints2();
+        final float[][] next2 = nextNumber.getControlPoints2();
 
         // A factor of the difference between current and next frame based on interpolation
         // If we ourselves did not specifically request drawing, then draw our previous state
         final float factor = mFactor;
 
-        final float thisWidth = mNumberWidth[thisNumber];
-        final float nextWidth = mNumberWidth[nextNumber];
+        final float thisWidth = mScale * thisNumber.getWidth();
+        final float nextWidth = mScale * nextNumber.getWidth();
         final float interpolatedWidth = lerp(thisWidth, nextWidth, factor);
-        if (thisWidth != nextWidth || mWidth != interpolatedWidth) {
+        if (!fequals(thisWidth, nextWidth) || !fequals(mWidth, interpolatedWidth)) {
             mWidth = Math.max(interpolatedWidth, 1f);
             requestLayout();
         }
@@ -402,18 +331,18 @@ public class NumberView extends View {
 
         // Draw the first point
         mPath.moveTo(
-                lerp(current[0][0], next[0][0], factor) + translateX,
-                lerp(current[0][1], next[0][1], factor) + translateY);
+                mScale * (lerp(current[0][0], next[0][0], factor) + translateX),
+                mScale * (lerp(current[0][1], next[0][1], factor) + translateY));
 
         // Connect the rest of the points as a bezier curve
         for (int i = 0; i < 4; i++) {
             mPath.cubicTo(
-                    lerp(curr1[i][0], next1[i][0], factor) + translateX,
-                    lerp(curr1[i][1], next1[i][1], factor) + translateY,
-                    lerp(curr2[i][0], next2[i][0], factor) + translateX,
-                    lerp(curr2[i][1], next2[i][1], factor) + translateY,
-                    lerp(current[i + 1][0], next[i + 1][0], factor) + translateX,
-                    lerp(current[i + 1][1], next[i + 1][1], factor) + translateY);
+                    mScale * (lerp(curr1[i][0], next1[i][0], factor) + translateX),
+                    mScale * (lerp(curr1[i][1], next1[i][1], factor) + translateY),
+                    mScale * (lerp(curr2[i][0], next2[i][0], factor) + translateX),
+                    mScale * (lerp(curr2[i][1], next2[i][1], factor) + translateY),
+                    mScale * (lerp(current[i + 1][0], next[i + 1][0], factor) + translateX),
+                    mScale * (lerp(current[i + 1][1], next[i + 1][1], factor) + translateY));
         }
 
         // Draw the path

@@ -7,11 +7,13 @@ import android.util.AttributeSet;
 import android.view.Gravity;
 import android.widget.LinearLayout;
 
+import static com.deange.numberview.digits.StandardDigits.HIDE_NUMBER;
+
 public class NumberViewGroup extends LinearLayout {
 
     private boolean mImmediate;
     private int mMinShown = -1;
-    private int mNumber = NumberView.HIDE_NUMBER;
+    private int mNumber = HIDE_NUMBER;
 
     private PaintProvider mPaintProvider;
 
@@ -31,7 +33,11 @@ public class NumberViewGroup extends LinearLayout {
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public NumberViewGroup(final Context context, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
+    public NumberViewGroup(
+            final Context context,
+            final AttributeSet attrs,
+            final int defStyleAttr,
+            final int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init();
     }
@@ -68,7 +74,7 @@ public class NumberViewGroup extends LinearLayout {
     private int getRequiredChildCount() {
         final int requested;
         switch (mNumber) {
-            case NumberView.HIDE_NUMBER:
+            case HIDE_NUMBER:
                 requested = 0;
                 break;
 
@@ -149,11 +155,11 @@ public class NumberViewGroup extends LinearLayout {
     }
 
     public void hide() {
-        advance(NumberView.HIDE_NUMBER);
+        advance(HIDE_NUMBER);
     }
 
     public void hideImmediate() {
-        advanceImmediate(NumberView.HIDE_NUMBER);
+        advanceImmediate(HIDE_NUMBER);
     }
 
     public void setMinimumNumbersShown(final int minimum) {
