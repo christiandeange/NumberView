@@ -1,6 +1,8 @@
 package com.deange.numberview.digits;
 
-public interface Digit extends Cloneable {
+import java.io.Serializable;
+
+public interface Digit extends Serializable {
 
     float[][] getPoints();
 
@@ -9,5 +11,7 @@ public interface Digit extends Cloneable {
     float[][] getControlPoints2();
 
     float getWidth();
+
+    char getChar();
 
 }

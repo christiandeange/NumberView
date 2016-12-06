@@ -7,13 +7,15 @@ import android.util.AttributeSet;
 import android.view.Gravity;
 import android.widget.LinearLayout;
 
-import static com.deange.numberview.digits.StandardDigits.HIDE_NUMBER;
+import com.deange.numberview.digits.Digit;
+import com.deange.numberview.digits.Digits;
 
 public class NumberViewGroup extends LinearLayout {
 
-    private boolean mImmediate;
-    private int mMinShown = -1;
-    private int mNumber = HIDE_NUMBER;
+    private boolean mPerformNow;
+    private int mMinShown;
+    private int mNumber;
+    private boolean mHide;
 
     private PaintProvider mPaintProvider;
 
@@ -53,14 +55,14 @@ public class NumberViewGroup extends LinearLayout {
             mPaintProvider.mutate(child.getPaint(), getChildCount());
         }
 
-        child.hideImmediate();
+        child.hideNow();
         addView(child, 0);
 
         return child;
     }
 
-    private int getDigit(int number, int digit) {
-        return (int) ((number / Math.pow(10, digit)) % 10);
+    private Digit resolveDigit(int number, int digit) {
+        return (mHide) ? Digits.empty() : Digits.forInt((int) ((number / Math.pow(10, digit)) % 10));
     }
 
     private int getIntLength(final int number) {
@@ -72,18 +74,7 @@ public class NumberViewGroup extends LinearLayout {
     }
 
     private int getRequiredChildCount() {
-        final int requested;
-        switch (mNumber) {
-            case HIDE_NUMBER:
-                requested = 0;
-                break;
-
-            default:
-                requested = getIntLength(mNumber);
-                break;
-        }
-
-        return Math.max(mMinShown, requested);
+        return Math.max(mMinShown, mHide ? 0 : getIntLength(mNumber));
     }
 
     private void bindViews() {
@@ -96,21 +87,21 @@ public class NumberViewGroup extends LinearLayout {
                 addNewChild();
             }
 
-            final NumberView child = getDigit(i);
-            final int number = Math.abs(getDigit(mNumber, i));
+            final NumberView child = getDigitAt(i);
+            final Digit d = resolveDigit(mNumber, i);
 
-            if (mImmediate) {
-                child.advanceImmediate(number);
+            if (mPerformNow) {
+                child.showNow(d);
             } else {
-                child.advance(number);
+                child.show(d);
             }
         }
 
         for (int i = size; i < getChildCount(); i++) {
             // Unused children :'(
-            final NumberView child = getDigit(i);
-            if (mImmediate) {
-                child.hideImmediate();
+            final NumberView child = getDigitAt(i);
+            if (mPerformNow) {
+                child.hideNow();
             } else {
                 child.hide();
             }
@@ -120,7 +111,7 @@ public class NumberViewGroup extends LinearLayout {
         invalidate();
     }
 
-    public NumberView getDigit(final int index) {
+    public NumberView getDigitAt(final int index) {
         // Reverse the indexing order of the children
         return (NumberView) getChildAt(getChildCount() - index - 1);
     }
@@ -129,37 +120,35 @@ public class NumberViewGroup extends LinearLayout {
         // Returns views in order from LSB to MSB
         final NumberView[] views = new NumberView[getChildCount()];
         for (int i = 0; i < getChildCount(); i++) {
-            views[i] = getDigit(i);
+            views[i] = getDigitAt(i);
         }
         return views;
     }
 
-    public void advance(final int number) {
+    public void show(final int number) {
+        mHide = false;
         mNumber = number;
-        mImmediate = false;
+        mPerformNow = false;
         bindViews();
     }
 
-    public void advanceImmediate(final int number) {
+    public void showNow(final int number) {
+        mHide = false;
         mNumber = number;
-        mImmediate = true;
+        mPerformNow = true;
         bindViews();
-    }
-
-    public void advance() {
-        advance(mNumber + 1);
-    }
-
-    public void advanceImmediate() {
-        advanceImmediate(mNumber + 1);
     }
 
     public void hide() {
-        advance(HIDE_NUMBER);
+        mHide = true;
+        mPerformNow = false;
+        bindViews();
     }
 
-    public void hideImmediate() {
-        advanceImmediate(HIDE_NUMBER);
+    public void hideNow() {
+        mHide = true;
+        mPerformNow = true;
+        bindViews();
     }
 
     public void setMinimumNumbersShown(final int minimum) {

@@ -8,11 +8,14 @@ import android.view.View;
 import android.widget.Button;
 
 import com.deange.numberview.NumberViewGroup;
+import com.deange.numberview.digits.Digits;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class NumberGroupActivity extends Activity implements View.OnClickListener {
+
+    private static final String KEY_TIME = "time";
 
     private Timer mTimer = new Timer();
     private Handler mMainHandler = new Handler(Looper.getMainLooper());
@@ -23,6 +26,7 @@ public class NumberGroupActivity extends Activity implements View.OnClickListene
     private Button mStartStopButton;
 
     private boolean mStarted = false;
+    private int mTime;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -36,6 +40,9 @@ public class NumberGroupActivity extends Activity implements View.OnClickListene
         mStartStopButton.setOnClickListener(this);
 
         mNumberViewGroup = (NumberViewGroup) findViewById(R.id.number_group);
+        mNumberViewGroup.hideNow();
+
+        mTime = savedInstanceState == null ? 0 : savedInstanceState.getInt(KEY_TIME);
     }
 
     @Override
@@ -50,8 +57,15 @@ public class NumberGroupActivity extends Activity implements View.OnClickListene
         super.onPause();
     }
 
+    @Override
+    protected void onSaveInstanceState(final Bundle outState) {
+        outState.putInt(KEY_TIME, mTime);
+        super.onSaveInstanceState(outState);
+    }
+
     private void updateUi() {
-        mNumberViewGroup.advance();
+        mNumberViewGroup.show(mTime);
+        mTime++;
     }
 
     private void startTimer() {
@@ -73,7 +87,8 @@ public class NumberGroupActivity extends Activity implements View.OnClickListene
     }
 
     private void handleReset() {
-        mNumberViewGroup.advanceImmediate(0);
+        mNumberViewGroup.hideNow();
+        mTime = 0;
     }
 
     @Override

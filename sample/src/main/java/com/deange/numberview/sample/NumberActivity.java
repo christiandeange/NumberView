@@ -1,7 +1,6 @@
 package com.deange.numberview.sample;
 
 import android.app.Activity;
-import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -9,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.deange.numberview.NumberView;
+import com.deange.numberview.digits.Digits;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -73,11 +73,10 @@ public class NumberActivity extends Activity implements View.OnClickListener {
     }
 
     private void updateUi() {
-
-        mSecondOnesView.advance(mTime % 10);
-        mSecondTensView.advance((mTime / 10) % 6);
-        mMinuteOnesView.advance((mTime / 60) % 10);
-        mMinuteTensView.advance((mTime / 600) % 6);
+        mSecondOnesView.show(Digits.forInt(mTime % 10));
+        mSecondTensView.show(Digits.forInt((mTime / 10) % 6));
+        mMinuteOnesView.show(Digits.forInt((mTime / 60) % 10));
+        mMinuteTensView.show(Digits.forInt((mTime / 600) % 6));
 
         mTime++;
     }
@@ -102,10 +101,10 @@ public class NumberActivity extends Activity implements View.OnClickListener {
 
     private void handleReset() {
         mTime = 0;
-        mSecondOnesView.advanceImmediate(0);
-        mSecondTensView.advanceImmediate(0);
-        mMinuteOnesView.advanceImmediate(0);
-        mMinuteTensView.advanceImmediate(0);
+        mSecondOnesView.hideNow();
+        mSecondTensView.hideNow();
+        mMinuteOnesView.hideNow();
+        mMinuteTensView.hideNow();
     }
 
     @Override

@@ -28,4 +28,9 @@ import com.deange.numberview.NumberView;
     public float getWidth() {
         return 1f;
     }
+
+    @Override
+    public char getChar() {
+        return '\0';
+    }
 }

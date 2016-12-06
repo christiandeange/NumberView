@@ -28,4 +28,9 @@ import static com.deange.numberview.NumberView.DEFAULT_WIDTH;
         return DEFAULT_WIDTH;
     }
 
+    @Override
+    public char getChar() {
+        return '0';
+    }
+
 }

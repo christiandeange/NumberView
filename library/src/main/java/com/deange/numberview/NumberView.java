@@ -15,7 +15,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Property;
-import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,9 +23,7 @@ import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 
 import com.deange.numberview.digits.Digit;
-import com.deange.numberview.digits.StandardDigits;
-
-import static com.deange.numberview.digits.StandardDigits.HIDE_NUMBER;
+import com.deange.numberview.digits.Digits;
 
 public class NumberView extends View {
 
@@ -54,12 +51,11 @@ public class NumberView extends View {
                 }
             };
 
-    private final SparseArray<Digit> mDigitCache = new SparseArray<>();
     private final NumberViewPaint mPaint = new NumberViewPaint();
     private final Path mPath = new Path();
 
-    private int mNext = HIDE_NUMBER;
-    private int mCurrent = HIDE_NUMBER;
+    private Digit mNext = Digits.empty();
+    private Digit mCurrent = Digits.empty();
     private boolean mFirstLayout = true;
 
     private float mWidth;
@@ -163,44 +159,32 @@ public class NumberView extends View {
         return getPaint().getTextSize();
     }
 
-    public int getCurrentNumber() {
+    public Digit getDigit() {
         return mNext;
     }
 
     public void hide() {
-        advance(HIDE_NUMBER);
+        show(Digits.empty());
     }
 
-    public void hideImmediate() {
-        advanceImmediate(HIDE_NUMBER);
+    public void hideNow() {
+        showNow(Digits.empty());
     }
 
-    public void advance() {
-        // Convenience to set the next number and advance to it in one call
-        doAdvance(mNext + 1, false);
-    }
-
-    public void advance(final int next) {
-        doAdvance(next, false);
-    }
-
-    public void advanceImmediate() {
-        // Convenience to set the next number and advance to it immediately in one call
-        doAdvance(mNext + 1, true);
-    }
-
-    public void advanceImmediate(final int next) {
-        doAdvance(next, true);
-    }
-
-    private void doAdvance(final int next, final boolean immediate) {
-        mNext = next;
-        checkSequenceBounds();
-
-        if (immediate) {
-            mCurrent = mNext;
+    public void show(final Digit digit) {
+        if (digit == null) {
+            throw new IllegalArgumentException("digit cannot be null");
         }
+        mNext = digit;
+        mAnimator.start();
+    }
 
+    public void showNow(final Digit digit) {
+        if (digit == null) {
+            throw new IllegalArgumentException("digit cannot be null");
+        }
+        mNext = digit;
+        mCurrent = digit;
         mAnimator.start();
     }
 
@@ -221,23 +205,6 @@ public class NumberView extends View {
 
         requestLayout();
         invalidate();
-    }
-
-    private void checkSequenceBounds() {
-        // Ensures single-digit values only
-        // This also preserves -1 as mNext (for empty digit)
-        if (mNext != HIDE_NUMBER) {
-            mNext = (mNext + 10) % 10;
-        }
-    }
-
-    private Digit getDigit(final int number) {
-        Digit digit = mDigitCache.get(number);
-        if (digit == null) {
-            digit = StandardDigits.forNumber(number);
-            mDigitCache.put(number, digit);
-        }
-        return digit;
     }
 
     private boolean isAnimating() {
@@ -262,7 +229,7 @@ public class NumberView extends View {
 
         if (getLayoutParams().width == ViewGroup.LayoutParams.WRAP_CONTENT) {
             if (!isAnimating()) {
-                mWidth = mScale * getDigit(mCurrent).getWidth();
+                mWidth = mScale * mCurrent.getWidth();
             }
             width = (int) Math.max(minWidth, mWidth);
         } else {
@@ -300,9 +267,8 @@ public class NumberView extends View {
     public void onDraw(final Canvas canvas) {
         super.onDraw(canvas);
 
-        checkSequenceBounds();
-        final Digit thisNumber = getDigit(mCurrent);
-        final Digit nextNumber = getDigit(mNext);
+        final Digit thisNumber = mCurrent;
+        final Digit nextNumber = mNext;
 
         final float[][] current = thisNumber.getPoints();
         final float[][] next = nextNumber.getPoints();
@@ -379,8 +345,8 @@ public class NumberView extends View {
     }
 
     private static class SavedState extends BaseSavedState {
-        public int next;
-        public int current;
+        public Digit next;
+        public Digit current;
 
         private SavedState(Parcelable superState) {
             super(superState);
@@ -388,15 +354,15 @@ public class NumberView extends View {
 
         private SavedState(Parcel in) {
             super(in);
-            next = in.readInt();
-            current = in.readInt();
+            next = (Digit) in.readSerializable();
+            current = (Digit) in.readSerializable();
         }
 
         @Override
         public void writeToParcel(Parcel out, int flags) {
             super.writeToParcel(out, flags);
-            out.writeInt(next);
-            out.writeInt(current);
+            out.writeSerializable(next);
+            out.writeSerializable(current);
         }
 
         public static final Parcelable.Creator<SavedState> CREATOR =
