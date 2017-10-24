@@ -1,15 +1,15 @@
-#NumberView
+# NumberView
 
 A simple number tweener.
 
 ![gif](design/output.gif)
 
 ---
-###What is it?
+### What is it?
 NumberView is mean to be a take on [Timely][]'s beautiful and tasteful number tweening animations. Despite looking like it draws actual numbers in it, the numbers drawn are represented as Bèzier curve paths, meticulously calculated with control points and anchors.
 
 ---
-###Usage
+### Usage
 Using [NumberView][] to show a single digit in your project is simple. You can drop it into your XML files as a regular custom view:
 
 Layout file:
@@ -48,11 +48,11 @@ postDelayed(() -> view.advance(), 2000); // Displays "21"
 You can always view the sample application code for more usage demos.
 
 ---
-###Dependencies
+### Dependencies
 No dependencies. Works all the way back to API level 14.
 
 ---
-###Download
+### Download
 
 ```groovy
 repositories {
@@ -67,14 +67,14 @@ dependencies {
 ```
 
 ---
-###Developed By
+### Developed By
 - Christian De Angelis - <de@ngelis.com>
 
 ---
-###License
+### License
 
 ```
-Copyright 2016 Christian De Angelis
+Copyright 2017 Christian De Angelis
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
